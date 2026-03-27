@@ -1,254 +1,221 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8" />
-    <title>JellyMoods</title>
-</head>
+<head><meta charset="utf-8"/><title>JellyMoods</title></head>
 <body>
 <div data-role="page" class="page" id="jellyMoodsPage">
-    <div data-role="content">
-        <div style="display:flex;flex-direction:column;align-items:center;padding:24px 16px 48px;font-family:sans-serif;">
+<div data-role="content">
+<div style="display:flex;flex-direction:column;align-items:center;padding:24px 16px 48px;font-family:sans-serif;color:#fff;">
 
-            <!-- Header -->
-            <div style="text-align:center;margin-bottom:28px;">
-                <h2 style="font-size:1.8em;font-weight:300;letter-spacing:0.06em;color:#fff;margin:0 0 6px;">🎵 JellyMoods</h2>
-                <p style="font-size:0.85em;color:#888;margin:0;">Click anywhere on the wheel to match music to your mood</p>
-            </div>
+  <!-- Header -->
+  <h2 style="font-size:1.6em;font-weight:300;letter-spacing:0.06em;margin:0 0 6px;">🎵 JellyMoods</h2>
+  <p style="font-size:0.85em;color:#888;margin:0 0 32px;">Tap the wheel to match music to your mood</p>
 
-            <!-- Wheel -->
-            <div id="jmWheelWrap" style="position:relative;width:480px;height:480px;margin:0 auto;">
-                <!-- Axis labels -->
-                <span style="position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:0.72em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.55);pointer-events:none;">Active</span>
-                <span style="position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-size:0.72em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.55);pointer-events:none;">Passive</span>
-                <span style="position:absolute;left:-56px;top:50%;transform:translateY(-50%);font-size:0.72em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.55);pointer-events:none;">Negative</span>
-                <span style="position:absolute;right:-56px;top:50%;transform:translateY(-50%);font-size:0.72em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.55);pointer-events:none;">Positive</span>
-                <!-- Corner labels -->
-                <span style="position:absolute;top:18px;left:22px;font-size:0.68em;font-weight:600;color:#ff7070;pointer-events:none;line-height:1.35;">Angry<br>Tense</span>
-                <span style="position:absolute;top:18px;right:22px;font-size:0.68em;font-weight:600;color:#ffe066;pointer-events:none;line-height:1.35;text-align:right;">Happy<br>Excited</span>
-                <span style="position:absolute;bottom:18px;left:22px;font-size:0.68em;font-weight:600;color:#7ba3ff;pointer-events:none;line-height:1.35;">Sad<br>Melancholic</span>
-                <span style="position:absolute;bottom:18px;right:22px;font-size:0.68em;font-weight:600;color:#5ee8cc;pointer-events:none;line-height:1.35;text-align:right;">Calm<br>Relaxed</span>
+  <!-- Wheel wrapper — uses CSS gradient, no canvas needed -->
+  <div id="jmWheelWrap" style="position:relative;width:min(80vw,420px);height:min(80vw,420px);margin:0 auto 8px;">
 
-                <canvas id="moodCanvas" width="480" height="480"
-                    style="display:block;border-radius:50%;cursor:crosshair;box-shadow:0 0 60px rgba(0,0,0,0.7),0 0 0 2px rgba(255,255,255,0.08);width:480px;height:480px;"></canvas>
+    <!-- The wheel itself: CSS conic+radial gradient circle -->
+    <div id="jmWheel" style="
+      width:100%;height:100%;
+      border-radius:50%;
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,0.35) 0%, transparent 38%),
+        conic-gradient(
+          from 135deg,
+          #3c5fc8 0deg,
+          #5a3fa0 45deg,
+          #c83c3c 90deg,
+          #d4960a 135deg,
+          #2ec8a0 180deg,
+          #2080c8 225deg,
+          #3c5fc8 270deg,
+          #5a3fa0 315deg,
+          #c83c3c 360deg
+        );
+      box-shadow:0 0 60px rgba(0,0,0,0.7),0 0 0 2px rgba(255,255,255,0.10);
+      cursor:crosshair;
+      touch-action:none;
+      user-select:none;
+    "></div>
 
-                <!-- Crosshair dot -->
-                <div id="moodDot" style="position:absolute;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.95);box-shadow:0 0 0 3px rgba(0,0,0,0.4),0 0 12px rgba(255,255,255,0.6);transform:translate(-50%,-50%);pointer-events:none;display:none;"></div>
-            </div>
+    <!-- Axis labels -->
+    <span style="position:absolute;top:-24px;left:50%;transform:translateX(-50%);font-size:0.65em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.5);pointer-events:none;">Active</span>
+    <span style="position:absolute;bottom:-24px;left:50%;transform:translateX(-50%);font-size:0.65em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.5);pointer-events:none;">Passive</span>
+    <span style="position:absolute;left:-62px;top:50%;transform:translateY(-50%);font-size:0.65em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.5);pointer-events:none;">Negative</span>
+    <span style="position:absolute;right:-62px;top:50%;transform:translateY(-50%);font-size:0.65em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.5);pointer-events:none;">Positive</span>
 
-            <!-- Mood info -->
-            <div style="text-align:center;margin-top:32px;min-height:72px;">
-                <div id="jmMoodName" style="font-size:1.5em;font-weight:300;letter-spacing:0.08em;color:#fff;min-height:1.6em;transition:color 0.3s;">— How are you feeling? —</div>
-                <div id="jmMoodDesc" style="font-size:0.82em;color:#999;margin-top:4px;min-height:1.2em;"></div>
-            </div>
+    <!-- Corner mood labels -->
+    <span style="position:absolute;top:14px;left:18px;font-size:0.68em;font-weight:700;color:#ff7070;line-height:1.3;pointer-events:none;">Angry<br>Tense</span>
+    <span style="position:absolute;top:14px;right:18px;font-size:0.68em;font-weight:700;color:#ffe066;line-height:1.3;text-align:right;pointer-events:none;">Happy<br>Excited</span>
+    <span style="position:absolute;bottom:14px;left:18px;font-size:0.68em;font-weight:700;color:#7ba3ff;line-height:1.3;pointer-events:none;">Sad<br>Melancholic</span>
+    <span style="position:absolute;bottom:14px;right:18px;font-size:0.68em;font-weight:700;color:#5ee8cc;line-height:1.3;text-align:right;pointer-events:none;">Calm<br>Relaxed</span>
 
-            <!-- Play button -->
-            <div style="margin-top:24px;text-align:center;">
-                <button id="jmPlayBtn" style="display:none;padding:12px 40px;border:none;border-radius:28px;font-size:1em;font-weight:600;letter-spacing:0.06em;cursor:pointer;background:linear-gradient(135deg,#7c6fff,#4eb8d8);color:#fff;box-shadow:0 4px 16px rgba(78,184,216,0.35);">▶ Play This Mood</button>
-                <div id="jmStatus" style="margin-top:12px;font-size:0.8em;color:#888;min-height:1.2em;"></div>
-                <div id="jmTrackCount" style="display:none;margin-top:8px;font-size:0.78em;color:#aaa;"></div>
-            </div>
+    <!-- Crosshair dot -->
+    <div id="moodDot" style="position:absolute;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(0,0,0,0.5),0 0 14px rgba(255,255,255,0.8);transform:translate(-50%,-50%);pointer-events:none;display:none;transition:background 0.2s;"></div>
+  </div>
 
-        </div>
-    </div>
+  <!-- Mood info -->
+  <div style="text-align:center;margin-top:36px;min-height:80px;">
+    <div id="jmMoodName" style="font-size:1.4em;font-weight:300;letter-spacing:0.08em;color:#fff;min-height:1.6em;">— How are you feeling? —</div>
+    <div id="jmMoodDesc" style="font-size:0.82em;color:#999;margin-top:6px;min-height:1.2em;"></div>
+  </div>
+
+  <!-- Play button -->
+  <div style="margin-top:20px;text-align:center;">
+    <button id="jmPlayBtn" style="display:none;padding:14px 44px;border:none;border-radius:30px;font-size:1em;font-weight:700;letter-spacing:0.06em;cursor:pointer;background:linear-gradient(135deg,#7c6fff,#4eb8d8);color:#fff;box-shadow:0 4px 20px rgba(78,184,216,0.4);">▶ Play This Mood</button>
+    <div id="jmStatus" style="margin-top:12px;font-size:0.8em;color:#777;min-height:1.2em;"></div>
+    <div id="jmTrackCount" style="display:none;margin-top:6px;font-size:0.78em;color:#aaa;"></div>
+  </div>
+
+</div>
+</div>
 </div>
 
 <script>
-(function () {
-    'use strict';
+(function(){
+'use strict';
 
-    var MOODS = [
-        { vMin:-1,  vMax: 0,  aMin: 0,  aMax: 1,  name:'Angry / Tense',     desc:'High energy, dark intensity',        genres:['Metal','Punk','Hard Rock','Industrial','Hardcore'],      col:'#ff5a5a' },
-        { vMin: 0,  vMax: 1,  aMin: 0,  aMax: 1,  name:'Happy / Excited',    desc:'Upbeat, euphoric, energising',       genres:['Pop','Dance','Electronic','Funk','House','Disco'],         col:'#ffe040' },
-        { vMin:-1,  vMax: 0,  aMin:-1,  aMax: 0,  name:'Sad / Melancholic',  desc:'Reflective, introspective, longing', genres:['Blues','Soul','Folk','Indie','Singer-Songwriter'],        col:'#6090ff' },
-        { vMin: 0,  vMax: 1,  aMin:-1,  aMax: 0,  name:'Calm / Relaxed',     desc:'Peaceful, gentle, serene',           genres:['Jazz','Ambient','Classical','Acoustic','Chill','New Age'],col:'#40dfc0' },
-        { vMin:-0.2,vMax:0.2, aMin: 0.6,aMax: 1,  name:'Tense / Pumped',     desc:'Intense, driven, focused',           genres:['Metal','Punk','Electronic','Hard Rock'],                  col:'#ff9030' },
-        { vMin:-0.2,vMax:0.2, aMin:-1,  aMax:-0.6,name:'Contemplative',      desc:'Quiet, thoughtful, drifting',        genres:['Ambient','Classical','Jazz','Folk'],                       col:'#70a0e8' },
-        { vMin: 0.6,vMax: 1,  aMin:-0.2,aMax: 0.2,name:'Content',            desc:'Easy, comfortable, at ease',         genres:['Acoustic','Chill','Jazz','Bossa Nova'],                    col:'#60e8a0' },
-        { vMin:-1,  vMax:-0.6,aMin:-0.2,aMax: 0.2,name:'Frustrated',         desc:'Unsettled, uneasy, moody',           genres:['Blues','Punk','Soul','Indie'],                             col:'#d87060' },
-    ];
+var MOODS = [
+  {vMin:-1,vMax:0,aMin:0,aMax:1,   name:'Angry / Tense',    desc:'High energy, dark intensity',         genres:['Metal','Punk','Hard Rock','Industrial','Hardcore'],       col:'#ff5a5a'},
+  {vMin:0,vMax:1,aMin:0,aMax:1,    name:'Happy / Excited',  desc:'Upbeat, euphoric, energising',         genres:['Pop','Dance','Electronic','Funk','House','Disco'],         col:'#ffe040'},
+  {vMin:-1,vMax:0,aMin:-1,aMax:0,  name:'Sad / Melancholic',desc:'Reflective, introspective, longing',   genres:['Blues','Soul','Folk','Indie','Singer-Songwriter'],         col:'#6090ff'},
+  {vMin:0,vMax:1,aMin:-1,aMax:0,   name:'Calm / Relaxed',   desc:'Peaceful, gentle, serene',             genres:['Jazz','Ambient','Classical','Acoustic','Chill','New Age'], col:'#40dfc0'},
+  {vMin:-0.2,vMax:0.2,aMin:0.6,aMax:1,  name:'Tense / Pumped',  desc:'Intense, driven, focused',        genres:['Metal','Punk','Electronic','Hard Rock'],                   col:'#ff9030'},
+  {vMin:-0.2,vMax:0.2,aMin:-1,aMax:-0.6,name:'Contemplative',   desc:'Quiet, thoughtful, drifting',     genres:['Ambient','Classical','Jazz','Folk'],                       col:'#70a0e8'},
+  {vMin:0.6,vMax:1,aMin:-0.2,aMax:0.2,  name:'Content',          desc:'Easy, comfortable, at ease',      genres:['Acoustic','Chill','Jazz','Bossa Nova'],                    col:'#60e8a0'},
+  {vMin:-1,vMax:-0.6,aMin:-0.2,aMax:0.2,name:'Frustrated',       desc:'Unsettled, uneasy, moody',        genres:['Blues','Punk','Soul','Indie'],                             col:'#d87060'},
+];
 
-    var C = {
-        tl: [230, 60,  60],
-        tr: [255,210,  30],
-        bl: [ 55, 90, 200],
-        br: [ 30,200, 170],
-    };
+var selectedValence=0, selectedArousal=0, pendingItems=[];
 
-    function drawWheel() {
-        var canvas = document.getElementById('moodCanvas');
-        var ctx = canvas.getContext('2d');
-        var W = canvas.width, H = canvas.height;
-        var cx = W/2, cy = H/2, r = W/2;
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI*2);
-        ctx.clip();
-
-        var img = ctx.createImageData(W, H);
-        for (var y = 0; y < H; y++) {
-            for (var x = 0; x < W; x++) {
-                var tx = x/(W-1), ty = y/(H-1);
-                var lerp = function(a,b,t){ return a+(b-a)*t; };
-                var rv = lerp(lerp(C.tl[0],C.tr[0],tx), lerp(C.bl[0],C.br[0],tx), ty);
-                var gv = lerp(lerp(C.tl[1],C.tr[1],tx), lerp(C.bl[1],C.br[1],tx), ty);
-                var bv = lerp(lerp(C.tl[2],C.tr[2],tx), lerp(C.bl[2],C.br[2],tx), ty);
-                var i = (y*W+x)*4;
-                img.data[i]=rv; img.data[i+1]=gv; img.data[i+2]=bv; img.data[i+3]=255;
-            }
-        }
-        ctx.putImageData(img, 0, 0);
-
-        var radial = ctx.createRadialGradient(cx,cy,0,cx,cy,r*0.38);
-        radial.addColorStop(0,'rgba(255,255,255,0.45)');
-        radial.addColorStop(1,'rgba(255,255,255,0)');
-        ctx.fillStyle = radial;
-        ctx.fillRect(0,0,W,H);
-
-        ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.lineWidth=2;
-        ctx.beginPath(); ctx.arc(cx,cy,r-1,0,Math.PI*2); ctx.stroke();
-
-        ctx.strokeStyle='rgba(255,255,255,0.18)'; ctx.lineWidth=1;
-        ctx.setLineDash([5,6]);
-        ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.restore();
+function posToMood(nx,ny){
+  // nx,ny are -1..1 from centre
+  var valence=nx, arousal=-ny;
+  var intensity=Math.min(1,Math.sqrt(valence*valence+arousal*arousal));
+  var best=MOODS[0],bestScore=-Infinity;
+  for(var i=0;i<MOODS.length;i++){
+    var m=MOODS[i];
+    if(valence>=m.vMin&&valence<=m.vMax&&arousal>=m.aMin&&arousal<=m.aMax){
+      var area=(m.vMax-m.vMin)*(m.aMax-m.aMin);
+      if(1/area>bestScore){bestScore=1/area;best=m;}
     }
+  }
+  return {valence:valence,arousal:arousal,intensity:intensity,mood:best};
+}
 
-    var selectedValence=0, selectedArousal=0, pendingItems=[];
+function getGenresForPosition(valence,arousal){
+  var happy=Math.max(0,valence)*Math.max(0,arousal);
+  var angry=Math.max(0,-valence)*Math.max(0,arousal);
+  var calm=Math.max(0,valence)*Math.max(0,-arousal);
+  var sad=Math.max(0,-valence)*Math.max(0,-arousal);
+  var q=[
+    {w:happy,genres:['Pop','Dance','Electronic','Funk','House','Disco','Party']},
+    {w:angry,genres:['Metal','Punk','Hard Rock','Industrial','Hardcore','Thrash Metal']},
+    {w:calm, genres:['Jazz','Ambient','Classical','Acoustic','Chill','New Age','Bossa Nova']},
+    {w:sad,  genres:['Blues','Soul','Folk','Indie','Singer-Songwriter','Slowcore']},
+  ];
+  var out={};
+  for(var i=0;i<q.length;i++){if(q[i].w>0.2)q[i].genres.forEach(function(g){out[g]=true;});}
+  return Object.keys(out);
+}
 
-    function canvasXY(canvas, evt) {
-        var rect = canvas.getBoundingClientRect();
-        var scaleX = canvas.width/rect.width, scaleY = canvas.height/rect.height;
-        return { x:(evt.clientX-rect.left)*scaleX, y:(evt.clientY-rect.top)*scaleY };
-    }
+function handleInteraction(clientX,clientY){
+  var wheel=document.getElementById('jmWheel');
+  var rect=wheel.getBoundingClientRect();
+  var cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+  var r=rect.width/2;
+  var dx=clientX-cx, dy=clientY-cy;
+  var dist=Math.sqrt(dx*dx+dy*dy);
+  if(dist>r) return; // outside circle
 
-    function insideCircle(x,y,W,H) {
-        var cx=W/2,cy=H/2,r=W/2;
-        return (x-cx)*(x-cx)+(y-cy)*(y-cy) <= r*r;
-    }
+  var nx=dx/r, ny=dy/r; // normalised -1..1
+  var res=posToMood(nx,ny);
+  selectedValence=res.valence; selectedArousal=res.arousal;
 
-    function posToMood(x,y,W,H) {
-        var valence = (x/W)*2-1;
-        var arousal = -((y/H)*2-1);
-        var intensity = Math.min(1, Math.sqrt(valence*valence+arousal*arousal));
-        var best=MOODS[0], bestScore=-Infinity;
-        for (var i=0;i<MOODS.length;i++) {
-            var m=MOODS[i];
-            if (valence>=m.vMin&&valence<=m.vMax&&arousal>=m.aMin&&arousal<=m.aMax) {
-                var area=(m.vMax-m.vMin)*(m.aMax-m.aMin);
-                if (1/area>bestScore){bestScore=1/area;best=m;}
-            }
-        }
-        return {valence:valence,arousal:arousal,intensity:intensity,mood:best};
-    }
+  // Move dot
+  var dot=document.getElementById('moodDot');
+  var wrap=document.getElementById('jmWheelWrap');
+  var wRect=wrap.getBoundingClientRect();
+  dot.style.left=(clientX-wRect.left)+'px';
+  dot.style.top=(clientY-wRect.top)+'px';
+  dot.style.background=res.mood.col;
+  dot.style.display='block';
 
-    function getGenresForPosition(valence, arousal) {
-        var happy  = Math.max(0, valence)*Math.max(0, arousal);
-        var angry  = Math.max(0,-valence)*Math.max(0, arousal);
-        var calm   = Math.max(0, valence)*Math.max(0,-arousal);
-        var sad    = Math.max(0,-valence)*Math.max(0,-arousal);
-        var quadrants = [
-            {w:happy, genres:['Pop','Dance','Electronic','Funk','House','Disco','Party']},
-            {w:angry, genres:['Metal','Punk','Hard Rock','Industrial','Hardcore','Thrash Metal']},
-            {w:calm,  genres:['Jazz','Ambient','Classical','Acoustic','Chill','New Age','Bossa Nova']},
-            {w:sad,   genres:['Blues','Soul','Folk','Indie','Singer-Songwriter','Slowcore']},
-        ];
-        var genres={};
-        for (var i=0;i<quadrants.length;i++){
-            if (quadrants[i].w>0.2) quadrants[i].genres.forEach(function(g){genres[g]=true;});
-        }
-        return Object.keys(genres);
-    }
+  if(res.intensity<0.15){
+    setMoodName('— Neutral —','#ccc');
+    setMoodDesc('Right in the middle — feeling balanced?');
+  } else {
+    setMoodName(res.mood.name,res.mood.col);
+    setMoodDesc(res.mood.desc);
+  }
+  showPlayBtn(true); setStatus(''); setTrackCount(0); pendingItems=[];
 
-    function updateDot(canvas,x,y,col) {
-        var dot=document.getElementById('moodDot');
-        var rect=canvas.getBoundingClientRect();
-        var wrap=document.getElementById('jmWheelWrap');
-        var wRect=wrap.getBoundingClientRect();
-        var scaleX=rect.width/canvas.width, scaleY=rect.height/canvas.height;
-        dot.style.left=(rect.left-wRect.left+x*scaleX)+'px';
-        dot.style.top=(rect.top-wRect.top+y*scaleY)+'px';
-        dot.style.background=col||'rgba(255,255,255,0.95)';
-        dot.style.display='block';
-    }
+  var genres=getGenresForPosition(res.valence,res.arousal);
+  fetchTracksByGenres(genres).then(function(items){
+    if(items.length===0) return fetchFallback();
+    return items;
+  }).then(function(items){
+    pendingItems=items; setTrackCount(items.length);
+    if(items.length===0) setStatus('No tracks found — check genre tags in your library.');
+  }).catch(function(){setStatus('Could not fetch tracks.');});
+}
 
-    function setStatus(t){document.getElementById('jmStatus').textContent=t;}
-    function setMoodName(t,col){var el=document.getElementById('jmMoodName');el.textContent=t;el.style.color=col||'#fff';}
-    function setMoodDesc(t){document.getElementById('jmMoodDesc').textContent=t;}
-    function showPlayBtn(v){document.getElementById('jmPlayBtn').style.display=v?'inline-block':'none';}
-    function setTrackCount(n){var el=document.getElementById('jmTrackCount');el.style.display=n>0?'block':'none';el.textContent=n>0?n+' tracks found':'';}
+// Mouse
+document.getElementById('jmWheel').addEventListener('click',function(e){
+  handleInteraction(e.clientX,e.clientY);
+});
 
-    async function fetchTracksByGenres(genres) {
-        var api = window.ApiClient;
-        if (!api) throw new Error('No API client');
-        var user = await api.getCurrentUser();
-        var params = {IncludeItemTypes:'Audio',Recursive:true,SortBy:'Random',Limit:50,Fields:'Genres,MediaSources'};
-        if (genres.length>0) params.Genres=genres.join(',');
-        var result = await api.getItems(user.Id, params);
-        return result.Items||[];
-    }
+// Touch
+document.getElementById('jmWheel').addEventListener('touchend',function(e){
+  e.preventDefault();
+  var t=e.changedTouches[0];
+  handleInteraction(t.clientX,t.clientY);
+},{passive:false});
 
-    async function fetchFallback() {
-        var api=window.ApiClient;
-        var user=await api.getCurrentUser();
-        var result=await api.getItems(user.Id,{IncludeItemTypes:'Audio',Recursive:true,SortBy:'Random',Limit:30,Fields:'Genres,MediaSources'});
-        return result.Items||[];
-    }
+document.getElementById('jmWheel').addEventListener('touchstart',function(e){
+  e.preventDefault(); // prevent scroll while touching wheel
+},{passive:false});
 
-    async function handleMoodSelect(x,y) {
-        var canvas=document.getElementById('moodCanvas');
-        var W=canvas.width,H=canvas.height;
-        if(!insideCircle(x,y,W,H)) return;
-        var res=posToMood(x,y,W,H);
-        selectedValence=res.valence; selectedArousal=res.arousal;
-        updateDot(canvas,x,y,res.mood.col);
-        if(res.intensity<0.15){setMoodName('— Neutral —','#ccc');setMoodDesc('Right in the middle — feeling balanced?');}
-        else{setMoodName(res.mood.name,res.mood.col);setMoodDesc(res.mood.desc);}
-        showPlayBtn(true); setStatus(''); setTrackCount(0); pendingItems=[];
-        try{
-            var genres=getGenresForPosition(res.valence,res.arousal);
-            var items=await fetchTracksByGenres(genres);
-            if(items.length===0) items=await fetchFallback();
-            pendingItems=items; setTrackCount(items.length);
-            if(items.length===0) setStatus('No tracks found — check genre tags in your library or update settings.');
-        }catch(e){setStatus('Could not fetch tracks.');}
-    }
+function setStatus(t){document.getElementById('jmStatus').textContent=t;}
+function setMoodName(t,col){var el=document.getElementById('jmMoodName');el.textContent=t;el.style.color=col||'#fff';}
+function setMoodDesc(t){document.getElementById('jmMoodDesc').textContent=t;}
+function showPlayBtn(v){document.getElementById('jmPlayBtn').style.display=v?'inline-block':'none';}
+function setTrackCount(n){var el=document.getElementById('jmTrackCount');el.style.display=n>0?'block':'none';el.textContent=n>0?n+' tracks found':'';}
 
-    document.getElementById('jmPlayBtn').addEventListener('click', async function(){
-        if(pendingItems.length===0){
-            setStatus('Fetching tracks…');
-            try{
-                var genres=getGenresForPosition(selectedValence,selectedArousal);
-                var items=await fetchTracksByGenres(genres);
-                if(items.length===0) items=await fetchFallback();
-                pendingItems=items;
-            }catch(e){setStatus('Could not fetch tracks.');return;}
-        }
-        if(pendingItems.length===0){setStatus('No matching tracks found.');return;}
-        setStatus('Starting playback…');
-        try{
-            require(['playbackManager'],function(pm){
-                pm.play({items:pendingItems,startIndex:0,queryOptions:{}});
-                setStatus('Playing '+pendingItems.length+' tracks');
-            });
-        }catch(e){setStatus('Playback failed — try from Jellyfin home screen.');}
+function fetchTracksByGenres(genres){
+  var api=window.ApiClient;
+  if(!api) return Promise.resolve([]);
+  return api.getCurrentUser().then(function(user){
+    var p={IncludeItemTypes:'Audio',Recursive:true,SortBy:'Random',Limit:50,Fields:'Genres,MediaSources'};
+    if(genres.length>0) p.Genres=genres.join(',');
+    return api.getItems(user.Id,p).then(function(r){return r.Items||[];});
+  });
+}
+
+function fetchFallback(){
+  var api=window.ApiClient;
+  if(!api) return Promise.resolve([]);
+  return api.getCurrentUser().then(function(user){
+    return api.getItems(user.Id,{IncludeItemTypes:'Audio',Recursive:true,SortBy:'Random',Limit:30}).then(function(r){return r.Items||[];});
+  });
+}
+
+document.getElementById('jmPlayBtn').addEventListener('click',function(){
+  var play=function(items){
+    if(!items||items.length===0){setStatus('No matching tracks found.');return;}
+    setStatus('Starting playback…');
+    require(['playbackManager'],function(pm){
+      pm.play({items:items,startIndex:0,queryOptions:{}});
+      setStatus('Playing '+items.length+' tracks ♪');
     });
+  };
+  if(pendingItems.length>0){play(pendingItems);return;}
+  setStatus('Fetching tracks…');
+  fetchTracksByGenres(getGenresForPosition(selectedValence,selectedArousal))
+    .then(function(items){return items.length>0?items:fetchFallback();})
+    .then(play)
+    .catch(function(){setStatus('Could not fetch tracks.');});
+});
 
-    var canvas=document.getElementById('moodCanvas');
-    canvas.addEventListener('click',function(evt){
-        var pos=canvasXY(canvas,evt);
-        handleMoodSelect(pos.x,pos.y);
-    });
-    canvas.addEventListener('mousemove',function(evt){
-        var pos=canvasXY(canvas,evt);
-        if(!insideCircle(pos.x,pos.y,canvas.width,canvas.height)) return;
-        var res=posToMood(pos.x,pos.y,canvas.width,canvas.height);
-        canvas.title=res.intensity<0.15?'Neutral':res.mood.name+' — '+res.mood.desc;
-    });
-
-    drawWheel();
 })();
 </script>
 </body>
