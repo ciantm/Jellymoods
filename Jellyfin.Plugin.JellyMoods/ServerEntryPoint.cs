@@ -4,54 +4,38 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
+using MediaBrowser.Controller.Plugins;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.JellyMoods;
 
 /// <summary>
-/// Runs on Jellyfin startup — patches web/config.json to globally load
-/// sidebar.js so JellyMoods appears in the main nav for all users.
-/// Uses IHostedService which is the correct interface for Jellyfin 10.10+.
+/// Patches web/config.json on startup to globally load sidebar.js.
 /// </summary>
-public class ServerEntryPoint : IHostedService
+public class ServerEntryPoint : IServerEntryPoint
 {
     private const string ScriptSrc  = "/JellyMoods/sidebar.js";
     private const string ScriptType = "module";
 
     private readonly ILogger<ServerEntryPoint> _logger;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ServerEntryPoint"/> class.
-    /// </summary>
+    /// <summary>Initializes a new instance of <see cref="ServerEntryPoint"/>.</summary>
     public ServerEntryPoint(ILogger<ServerEntryPoint> logger)
     {
         _logger = logger;
     }
 
     /// <inheritdoc />
-    public Task StartAsync(CancellationToken cancellationToken)
+    public Task RunAsync(CancellationToken cancellationToken)
     {
-        try
-        {
-            PatchWebConfig();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "[JellyMoods] Could not patch web config");
-        }
-
+        try { PatchWebConfig(); }
+        catch (Exception ex) { _logger.LogWarning(ex, "[JellyMoods] Could not patch config.json"); }
         return Task.CompletedTask;
     }
-
-    /// <inheritdoc />
-    public Task StopAsync(CancellationToken cancellationToken)
-        => Task.CompletedTask;
 
     private void PatchWebConfig()
     {
         var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-
         var candidates = new[]
         {
             Path.Combine(baseDir, "jellyfin-web", "config.json"),
@@ -62,22 +46,15 @@ public class ServerEntryPoint : IHostedService
         };
 
         string? configPath = null;
-        foreach (var c in candidates)
-        {
-            if (File.Exists(c)) { configPath = c; break; }
-        }
+        foreach (var c in candidates) { if (File.Exists(c)) { configPath = c; break; } }
 
         if (configPath is null)
         {
-            _logger.LogWarning("[JellyMoods] web config.json not found — tried: {Paths}",
-                string.Join(", ", candidates));
+            _logger.LogWarning("[JellyMoods] config.json not found");
             return;
         }
 
-        _logger.LogInformation("[JellyMoods] Patching {Path}", configPath);
-
-        var json = JsonNode.Parse(File.ReadAllText(configPath)) as JsonObject
-                   ?? new JsonObject();
+        var json = JsonNode.Parse(File.ReadAllText(configPath)) as JsonObject ?? new JsonObject();
 
         if (json["plugins"] is not JsonArray plugins)
         {
@@ -95,10 +72,10 @@ public class ServerEntryPoint : IHostedService
         }
 
         plugins.Add(new JsonObject { ["src"] = ScriptSrc, ["type"] = ScriptType });
-
-        File.WriteAllText(configPath,
-            json.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
-
-        _logger.LogInformation("[JellyMoods] sidebar.js registered in config.json");
+        File.WriteAllText(configPath, json.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        _logger.LogInformation("[JellyMoods] Registered sidebar.js in config.json");
     }
+
+    /// <inheritdoc />
+    public void Dispose() { }
 }
