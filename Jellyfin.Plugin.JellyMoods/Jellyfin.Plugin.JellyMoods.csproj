@@ -19,22 +19,14 @@
     <PackageProjectUrl>https://github.com/ciantm/Jellymoods</PackageProjectUrl>
   </PropertyGroup>
 
-  <!-- ASP.NET Core required for controller types (ControllerBase, ApiController etc.) -->
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-
-  <!-- Jellyfin SDK — compile-only, never bundled in the output DLL -->
   <ItemGroup>
     <PackageReference Include="Jellyfin.Model"      Version="10.9.0" PrivateAssets="all" />
     <PackageReference Include="Jellyfin.Controller" Version="10.9.0" PrivateAssets="all" />
   </ItemGroup>
 
-  <!-- Embed HTML/JS assets as resources inside the DLL -->
   <ItemGroup>
     <EmbeddedResource Include="Configuration\configPage.html" />
     <EmbeddedResource Include="Configuration\moodPicker.html" />
-    <EmbeddedResource Include="Configuration\sidebar.js" />
   </ItemGroup>
 
 </Project>
