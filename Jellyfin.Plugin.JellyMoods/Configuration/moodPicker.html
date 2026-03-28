@@ -238,13 +238,39 @@ function handleInteraction(clientX, clientY){
   pendingItems=[];
 
   var genres=getBlendedGenres(valence,arousal);
+
+  // ── Debug panel ──────────────────────────────────────────────
+  var dbg=document.getElementById('jmDebug');
+  dbg.style.display='block';
+  document.getElementById('jmDebugCoords').textContent=
+    'Valence: '+valence.toFixed(2)+' | Arousal: '+arousal.toFixed(2);
+
+  // Show 5 nearest moods with distances
+  var dists=MOODS.map(function(m){
+    return {name:m.name,d:Math.sqrt((valence-m.x)*(valence-m.x)+(arousal-m.y)*(arousal-m.y))};
+  }).sort(function(a,b){return a.d-b.d;}).slice(0,5);
+  document.getElementById('jmDebugMoods').innerHTML=dists.map(function(m){
+    var pct=Math.round((1-Math.min(m.d,1))*100);
+    return '<span style="color:#fff;">'+m.name+'</span> <span style="color:#666;">('+pct+'% match)</span>';
+  }).join(' &nbsp;·&nbsp; ');
+
+  document.getElementById('jmDebugGenres').textContent=genres.join(', ');
+  document.getElementById('jmDebugApi').textContent='Calling Jellyfin API…';
+  // ── End debug ────────────────────────────────────────────────
+
   fetchTracksByGenres(genres)
     .then(function(items){return items.length>0?items:fetchFallback();})
     .then(function(items){
       pendingItems=items; setTrackCount(items.length);
       setStatus(items.length>0?'':'No tracks found — check genre tags in your library.');
+      document.getElementById('jmDebugApi').textContent=
+        items.length>0 ? '✓ Got '+items.length+' tracks' : '✗ 0 tracks returned — genre tags may not match';
     })
-    .catch(function(e){console.error('[JellyMoods]',e);setStatus('Could not fetch tracks.');});
+    .catch(function(e){
+      console.error('[JellyMoods]',e);
+      setStatus('Could not fetch tracks.');
+      document.getElementById('jmDebugApi').textContent='✗ API error: '+e.message;
+    });
 }
 
 // ── Button click — universally fired by all browsers and frameworks ──
