@@ -21,8 +21,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
@@ -38,13 +36,6 @@ jobs:
           echo "tag=$TAG"           >> "$GITHUB_OUTPUT"
           echo "version=$VER"       >> "$GITHUB_OUTPUT"
           echo "artifact=$ARTIFACT" >> "$GITHUB_OUTPUT"
-
-      - name: Create and push tag
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag ${{ steps.version.outputs.tag }} || echo "Tag already exists"
-          git push origin ${{ steps.version.outputs.tag }} || echo "Tag already pushed"
 
       - name: Build
         run: |
@@ -69,7 +60,7 @@ jobs:
           name: plugin-zip
           path: ${{ steps.version.outputs.artifact }}
 
-      - name: Create Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
