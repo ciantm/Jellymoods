@@ -6,9 +6,6 @@ on:
       - main
     paths:
       - 'build.yaml'
-  push:
-    tags:
-      - 'v*.*.*.*'
 
 jobs:
   build:
@@ -29,23 +26,17 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # ── Parse version ─────────────────────────────────────────────────────
+      # ── Parse version from build.yaml ──────────────────────────────────
       - name: Parse version
         id: version
         run: |
-          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
-            TAG="${GITHUB_REF_NAME}"
-            VER="${TAG#v}"
-          else
-            VER=$(grep '^version:' build.yaml | sed 's/version: *"\(.*\)"/\1/')
-            TAG="v${VER}"
-          fi
+          VER=$(grep '^version:' build.yaml | sed 's/version: *"\(.*\)"/\1/')
+          TAG="v${VER}"
           echo "tag=$TAG"     >> "$GITHUB_OUTPUT"
           echo "version=$VER" >> "$GITHUB_OUTPUT"
 
-      # ── Create tag if triggered by branch push ────────────────────────────
+      # ── Create and push tag ───────────────────────────────────────────────
       - name: Create and push tag
-        if: startsWith(github.ref, 'refs/heads/')
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -123,11 +114,11 @@ jobs:
       - name: Parse version
         id: version
         run: |
-          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+          VER=$(grep '^version:' build.yaml | sed 's/version: *"\(.*\)"/\1/' 2>/dev/null || echo "")
+          if [ -z "$VER" ]; then
             TAG="${GITHUB_REF_NAME}"
             VER="${TAG#v}"
           else
-            VER=$(grep '^version:' build.yaml | sed 's/version: *"\(.*\)"/\1/' 2>/dev/null || echo "${{ needs.build.outputs.version }}")
             TAG="v${VER}"
           fi
           echo "version=$VER" >> "$GITHUB_OUTPUT"
