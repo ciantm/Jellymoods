@@ -7,3 +7,5 @@ artifactDir: "artifacts"
 
 projects:
   - Jellyfin.Plugin.JellyMoods/Jellyfin.Plugin.JellyMoods.csproj
+
+# trigger release
