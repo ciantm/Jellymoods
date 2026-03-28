@@ -2,19 +2,26 @@ name: Build & Release
 
 on:
   push:
+    branches:
+      - main
+    paths:
+      - 'build.yaml'
+  push:
     tags:
-      - 'v*.*.*.*'   # triggers on e.g. v1.0.0.0
+      - 'v*.*.*.*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # needed to create GitHub Releases
+      contents: write
 
     steps:
       # ── Checkout ──────────────────────────────────────────────────────────
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # ── Setup .NET ────────────────────────────────────────────────────────
       - name: Setup .NET 8
@@ -22,14 +29,28 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # ── Parse version from tag ────────────────────────────────────────────
+      # ── Parse version ─────────────────────────────────────────────────────
       - name: Parse version
         id: version
         run: |
-          TAG="${GITHUB_REF_NAME}"          # e.g. v1.0.0.0
-          VER="${TAG#v}"                    # strip leading 'v'
-          echo "tag=$TAG"   >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF_NAME}"
+            VER="${TAG#v}"
+          else
+            VER=$(grep '^version:' build.yaml | sed 's/version: *"\(.*\)"/\1/')
+            TAG="v${VER}"
+          fi
+          echo "tag=$TAG"     >> "$GITHUB_OUTPUT"
           echo "version=$VER" >> "$GITHUB_OUTPUT"
+
+      # ── Create tag if triggered by branch push ────────────────────────────
+      - name: Create and push tag
+        if: startsWith(github.ref, 'refs/heads/')
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.version.outputs.tag }} || echo "Tag already exists"
+          git push origin ${{ steps.version.outputs.tag }} || echo "Tag already pushed"
 
       # ── Build ─────────────────────────────────────────────────────────────
       - name: Build
@@ -40,7 +61,7 @@ jobs:
             -p:Version=${{ steps.version.outputs.version }} \
             --output ./build_output
 
-      # ── Package zip (DLL only — Jellyfin requirement) ────────────────────
+      # ── Package zip ──────────────────────────────────────────────────────
       - name: Package
         run: |
           ARTIFACT="Jellyfin.Plugin.JellyMoods_${{ steps.version.outputs.version }}.zip"
@@ -50,7 +71,7 @@ jobs:
           echo "artifact=${ARTIFACT}" >> "$GITHUB_ENV"
           echo "checksum=$(md5sum "${ARTIFACT}" | awk '{print $1}')" >> "$GITHUB_ENV"
 
-      # ── Upload artifact for manifest job ─────────────────────────────────
+      # ── Upload artifact ───────────────────────────────────────────────────
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
@@ -102,8 +123,13 @@ jobs:
       - name: Parse version
         id: version
         run: |
-          TAG="${GITHUB_REF_NAME}"
-          VER="${TAG#v}"
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF_NAME}"
+            VER="${TAG#v}"
+          else
+            VER=$(grep '^version:' build.yaml | sed 's/version: *"\(.*\)"/\1/' 2>/dev/null || echo "${{ needs.build.outputs.version }}")
+            TAG="v${VER}"
+          fi
           echo "version=$VER" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG"     >> "$GITHUB_OUTPUT"
 
