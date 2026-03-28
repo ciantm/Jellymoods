@@ -98,25 +98,42 @@
 </div>
 
 <script>
-// ── Auth: read Jellyfin credentials from localStorage ─────────────────────
+// ── Auth: read Jellyfin credentials ───────────────────────────────────────
 var JM = (function(){
   var server = window.location.origin;
   var token = null, userId = null, serverId = null;
 
-  // Jellyfin stores auth in localStorage as JSON under key like "jellyfin_credentials"
-  // Try multiple known keys across versions
-  var keys = Object.keys(localStorage);
-  for(var i=0; i<keys.length; i++){
-    try{
-      var val = JSON.parse(localStorage.getItem(keys[i]));
-      if(val && val.Servers && val.Servers.length){
-        var srv = val.Servers[0];
-        token    = srv.AccessToken || null;
-        userId   = srv.UserId      || null;
-        serverId = srv.Id          || null;
-        if(token) break;
-      }
-    }catch(e){}
+  try {
+    // Scan ALL localStorage keys for any that look like Jellyfin auth
+    var keys = Object.keys(localStorage);
+    for(var i=0; i<keys.length; i++){
+      try{
+        var raw = localStorage.getItem(keys[i]);
+        if(!raw || raw[0] !== '{') continue;
+        var val = JSON.parse(raw);
+        // Format 1: {Servers:[{AccessToken, UserId, Id}]}
+        if(val && val.Servers && val.Servers.length){
+          var srv = val.Servers[0];
+          if(srv.AccessToken){ token=srv.AccessToken; userId=srv.UserId; serverId=srv.Id; break; }
+        }
+        // Format 2: {AccessToken, User:{Id}}
+        if(val && val.AccessToken && val.User){
+          token=val.AccessToken; userId=val.User.Id; break;
+        }
+        // Format 3: direct token string
+        if(val && val.token && val.userId){
+          token=val.token; userId=val.userId; break;
+        }
+      }catch(e){}
+    }
+
+    // Also try URL params — user can pass ?token=xxx&userId=xxx
+    var params = new URLSearchParams(window.location.search);
+    if(params.get('token')) token = params.get('token');
+    if(params.get('userId')) userId = params.get('userId');
+
+  } catch(e) {
+    // localStorage may be unavailable in some contexts
   }
 
   return {
@@ -126,17 +143,20 @@ var JM = (function(){
     serverId: serverId,
     headers: function(){
       return {
-        'X-Emby-Authorization': 'MediaBrowser Client="JellyMoods",Device="Browser",DeviceId="jm-app",Version="1.0",Token="'+token+'"'
+        'X-Emby-Authorization': 'MediaBrowser Client="JellyMoods",Device="Browser",DeviceId="jm-app",Version="1.0"'
+          + (token ? ',Token="'+token+'"' : '')
       };
     }
   };
 })();
 
-// Show auth error if not logged in
+// Always show the app — if auth fails, API calls will return 401 and we show a message
+// Don't hide the page on auth failure — show login instructions instead
+document.getElementById('jmApp').style.display = 'flex';
 if(!JM.token || !JM.userId){
-  document.getElementById('jmAuthError').style.display = 'block';
-} else {
-  document.getElementById('jmApp').style.display = 'flex';
+  document.getElementById('jmStatus').textContent =
+    'Not logged in — visit Jellyfin first, then return to this page. Or add ?token=YOUR_TOKEN&userId=YOUR_ID to the URL.';
+  document.getElementById('jmStatus').style.color = '#ff8080';
 }
 
 // ── SVG click handler ──────────────────────────────────────────────────────
