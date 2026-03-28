@@ -228,45 +228,20 @@ function handleInteraction(clientX, clientY){
   pendingItems=[];
 
   var genres=getBlendedGenres(valence,arousal);
-
-  // ── Debug panel ──────────────────────────────────────────────
-  var dbg=document.getElementById('jmDebug');
-  dbg.style.display='block';
-  document.getElementById('jmDebugCoords').textContent=
-    'Valence: '+valence.toFixed(2)+' | Arousal: '+arousal.toFixed(2);
-
-  // Show 5 nearest moods with distances
-  var dists=MOODS.map(function(m){
-    return {name:m.name,d:Math.sqrt((valence-m.x)*(valence-m.x)+(arousal-m.y)*(arousal-m.y))};
-  }).sort(function(a,b){return a.d-b.d;}).slice(0,5);
-  document.getElementById('jmDebugMoods').innerHTML=dists.map(function(m){
-    var pct=Math.round((1-Math.min(m.d,1))*100);
-    return '<span style="color:#fff;">'+m.name+'</span> <span style="color:#666;">('+pct+'% match)</span>';
-  }).join(' &nbsp;·&nbsp; ');
-
-  document.getElementById('jmDebugGenres').textContent=genres.join(', ');
-  document.getElementById('jmDebugApi').textContent='Calling Jellyfin API…';
-  // ── End debug ────────────────────────────────────────────────
+  console.log('[JellyMoods] valence='+valence.toFixed(2)+' arousal='+arousal.toFixed(2)+' genres='+genres.join(', '));
 
   fetchTracksByGenres(genres)
     .then(function(items){return items.length>0?items:fetchFallback();})
     .then(function(items){
       pendingItems=items; setTrackCount(items.length);
       setStatus(items.length>0?'':'No tracks found — check genre tags in your library.');
-      document.getElementById('jmDebugApi').textContent=
-        items.length>0 ? '✓ Got '+items.length+' tracks' : '✗ 0 tracks returned — genre tags may not match';
+      console.log('[JellyMoods]',items.length>0?'Got '+items.length+' tracks':'0 tracks — genre tags may not match');
     })
     .catch(function(e){
       console.error('[JellyMoods]',e);
       setStatus('Could not fetch tracks.');
-      document.getElementById('jmDebugApi').textContent='✗ API error: '+e.message;
     });
 }
-
-// ── Button click — universally fired by all browsers and frameworks ──
-document.getElementById('jmWheel').onclick = function(e){
-  handleInteraction(e.clientX, e.clientY);
-};
 
 // ── UI helpers ────────────────────────────────────────────────
 function setStatus(t){document.getElementById('jmStatus').textContent=t;}
@@ -293,29 +268,33 @@ function fetchFallback(){
 }
 
 // ── Play button ───────────────────────────────────────────────
+function playItems(items){
+  if(!items||!items.length){setStatus('No matching tracks found.');return;}
+  if(!JM.token||!JM.userId){setStatus('Not logged in — open via Jellyfin.');return;}
+  setStatus('Starting playback…');
+  var ids=items.map(function(i){return i.Id;});
+  fetch(JM.server+'/Sessions?ControllableByUserId='+JM.userId,{headers:JM.headers()})
+    .then(function(r){return r.json();})
+    .then(function(sessions){
+      var session=sessions.filter(function(s){return s.UserId===JM.userId;})[0];
+      if(!session){setStatus('No active Jellyfin session found — open the web player first.');return;}
+      return fetch(JM.server+'/Sessions/'+session.Id+'/Playing',{
+        method:'POST',
+        headers:Object.assign({'Content-Type':'application/json'},JM.headers()),
+        body:JSON.stringify({PlayCommand:'PlayNow',ItemIds:ids,StartIndex:0})
+      }).then(function(){setStatus('Playing '+items.length+' tracks \u266a');});
+    })
+    .catch(function(e){console.error('[JellyMoods]',e);setStatus('Playback error: '+e.message);});
+}
+
 document.getElementById('jmPlayBtn').onclick=function(){
-  var play=function(items){
-    if(!items||!items.length){setStatus('No matching tracks found.');return;}
-    // Send items to Jellyfin's main player via postMessage then redirect
-    var ids=items.map(function(i){return i.Id;}).join(',');
-    var url=JM.server+'/web/index.html#!/queue?ids='+ids;
-    // Store queue in sessionStorage for Jellyfin's player to pick up
-    try{
-      sessionStorage.setItem('jmQueue',JSON.stringify(items.map(function(i){return i.Id;})));
-    }catch(e){}
-    // Open in Jellyfin's own player context
-    window.location.href=JM.server+'/web/index.html#!/nowplaying?serverId='+JM.serverId+'&id='+items[0].Id;
-    setStatus('Opening in Jellyfin player ♪');
-  };
-  if(pendingItems.length>0){play(pendingItems);return;}
+  if(pendingItems.length>0){playItems(pendingItems);return;}
   setStatus('Fetching tracks…');
   fetchTracksByGenres(getBlendedGenres(selectedValence,selectedArousal))
     .then(function(items){return items.length>0?items:fetchFallback();})
-    .then(play)
+    .then(playItems)
     .catch(function(){setStatus('Could not fetch tracks.');});
 };
-
-})();
 
 })();
 </script>
