@@ -15,7 +15,7 @@
     <!-- Red  top-left = angry/aggressive -->
     <!-- Yellow top-right = happy/euphoric -->
     <!-- Teal  bottom-right = calm/serene -->
-    <div id="jmWheel" onclick="jmHandleClick(event)" ontouchstart="jmHandleTouch(event)" style="position:absolute;inset:0;border-radius:50%;overflow:hidden;box-shadow:0 0 60px rgba(0,0,0,0.8),0 0 0 2px rgba(255,255,255,0.10);cursor:crosshair;-webkit-tap-highlight-color:transparent;">
+    <div id="jmWheel" data-role="none" onclick="jmHandleClick(event)" ontouchstart="jmHandleTouch(event)" style="position:absolute;inset:0;border-radius:50%;overflow:hidden;box-shadow:0 0 60px rgba(0,0,0,0.8),0 0 0 2px rgba(255,255,255,0.10);cursor:crosshair;-webkit-tap-highlight-color:transparent;">
       <div style="position:absolute;inset:0;background:#000;"></div>
       <div style="position:absolute;inset:0;background:radial-gradient(ellipse 130% 130% at 0% 0%, #ff1a00 0%, transparent 70%);mix-blend-mode:screen;pointer-events:none;"></div>
       <div style="position:absolute;inset:0;background:radial-gradient(ellipse 130% 130% at 100% 0%, #ffe800 0%, transparent 70%);mix-blend-mode:screen;pointer-events:none;"></div>
@@ -244,7 +244,7 @@ function handleInteraction(clientX, clientY){
     .catch(function(e){console.error('[JellyMoods]',e);setStatus('Could not fetch tracks.');});
 }
 
-// ── Global handlers on wheel div (inline attrs bypass framework interceptors) ──
+// ── Event binding — jQuery Mobile vclick + native fallbacks ──────
 window.jmHandleClick=function(e){
   handleInteraction(e.clientX,e.clientY);
 };
@@ -253,6 +253,23 @@ window.jmHandleTouch=function(e){
   var t=e.touches[0];
   handleInteraction(t.clientX,t.clientY);
 };
+// jQuery Mobile intercepts native clicks — bind to vclick if jQuery present
+(function(){
+  var el=document.getElementById('jmWheel');
+  if(window.jQuery){
+    // vclick is jQuery Mobile's normalised tap/click event
+    jQuery(el).on('vclick',function(e){
+      var orig=e.originalEvent||e;
+      handleInteraction(orig.clientX||orig.pageX, orig.clientY||orig.pageY);
+    });
+  } else {
+    // No jQuery — use pointer/mouse events as backup
+    el.addEventListener('pointerdown',function(e){
+      e.stopPropagation();
+      handleInteraction(e.clientX,e.clientY);
+    });
+  }
+})();
 
 // ── UI helpers ────────────────────────────────────────────────
 function setStatus(t){document.getElementById('jmStatus').textContent=t;}
