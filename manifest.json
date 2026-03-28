@@ -9,12 +9,12 @@
     "imageUrl": "https://raw.githubusercontent.com/ciantm/Jellymoods/main/assets/logo.png",
     "versions": [
       {
-        "version": "1.0.0.0",
-        "changelog": "Initial release — mood wheel UI, genre-based playlist generation, configurable quadrant mappings.",
+        "version": "3.0.0.0",
+        "changelog": "Fix critical JS bugs: SyntaxError preventing script load, broken wheel click handler, missing debug DOM elements, and broken play button using undefined serverId.",
         "targetAbi": "10.8.0.0",
-        "sourceUrl": "https://github.com/ciantm/Jellymoods/releases/download/v1.0.0.0/Jellyfin.Plugin.JellyMoods_1.0.0.0.zip",
-        "checksum": "PLACEHOLDER_REPLACE_ON_FIRST_RELEASE",
-        "timestamp": "2024-01-01T00:00:00Z"
+        "sourceUrl": "https://github.com/ciantm/Jellymoods/releases/download/v3.0.0.0/Jellyfin.Plugin.JellyMoods_3.0.0.0.zip",
+        "checksum": "PLACEHOLDER_REPLACE_ON_RELEASE",
+        "timestamp": "2026-03-28T00:00:00Z"
       }
     ]
   }
