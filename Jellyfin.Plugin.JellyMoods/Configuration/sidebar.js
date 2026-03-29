@@ -7,32 +7,35 @@ define([], function () {
 
   var ITEM_ID  = 'jellymoods-nav-item';
   var APP_URL  = '/JellyMoods/app';
+  var _timer   = null;
 
   function buildItem() {
     var a = document.createElement('a');
     a.id        = ITEM_ID;
     a.href      = APP_URL;
-    a.className = 'navMenuOption lnkMediaFolder';
+    a.setAttribute('is', 'emby-linkbutton');
+    a.className = 'lnkMediaFolder navMenuOption';
     a.innerHTML =
       '<span class="material-icons navMenuOptionIcon music_note" aria-hidden="true"></span>' +
       '<span class="navMenuOptionText">JellyMoods</span>';
     a.addEventListener('click', function (e) {
       e.preventDefault();
+      e.stopPropagation();
       window.location.href = APP_URL;
     });
     return a;
   }
 
   function findMusicItem(container) {
-    // Match the icon span that has "music_note" in its class
-    var icons = container.querySelectorAll('.navMenuOptionIcon');
-    for (var i = 0; i < icons.length; i++) {
-      if (/\bmusic_note\b/.test(icons[i].className)) return icons[i].closest('a');
-    }
-    // Fallback: match by text
     var links = container.querySelectorAll('a');
+    for (var i = 0; i < links.length; i++) {
+      // Match by music_note icon class
+      var icon = links[i].querySelector('.navMenuOptionIcon');
+      if (icon && /\bmusic_note\b/.test(icon.className)) return links[i];
+    }
+    // Fallback: match any text containing "music"
     for (var j = 0; j < links.length; j++) {
-      var txt = links[j].querySelector('.navMenuOptionText');
+      var txt = links[j].querySelector('[class*="navMenuOptionText"]');
       if (txt && txt.textContent.trim().toLowerCase() === 'music') return links[j];
     }
     return null;
@@ -40,26 +43,37 @@ define([], function () {
 
   function inject() {
     var container = document.querySelector('.libraryMenuOptions');
-    if (!container) return;
+    if (!container) return false;
 
     var musicEl = findMusicItem(container);
-    if (!musicEl) return; // Music not rendered yet — wait for next mutation
+    if (!musicEl) return false; // not ready yet
 
     var existing = document.getElementById(ITEM_ID);
-    if (existing && existing.previousElementSibling === musicEl) return; // already correct
+    if (existing && existing.previousElementSibling === musicEl) return true; // already correct
 
     if (existing) existing.parentNode.removeChild(existing);
     musicEl.parentNode.insertBefore(buildItem(), musicEl.nextSibling);
+    return true;
   }
 
+  function poll() {
+    if (inject()) return; // done
+    _timer = setTimeout(poll, 300);
+  }
+
+  // Kick off polling
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', inject);
+    document.addEventListener('DOMContentLoaded', poll);
   } else {
-    inject();
+    poll();
   }
 
+  // Also watch DOM mutations (nav re-renders on SPA navigation)
   if (!window._jmObserver) {
-    window._jmObserver = new MutationObserver(inject);
+    window._jmObserver = new MutationObserver(function () {
+      clearTimeout(_timer);
+      poll();
+    });
     window._jmObserver.observe(document.body, { childList: true, subtree: true });
   }
 
