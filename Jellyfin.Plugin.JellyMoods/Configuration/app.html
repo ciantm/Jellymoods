@@ -183,28 +183,29 @@ var MOODS = [
 ];
 
 // ── Player ──────────────────────────────────────────────────────────────
-var jmPlaylist  = [];
-var jmPlayIdx   = 0;
-var jmAdvancing = false;
-var jmAudio     = document.getElementById('jmAudio');
+var jmPlaylist   = [];
+var jmPlayIdx    = 0;
+var jmGeneration = 0;
+var jmAudio      = document.getElementById('jmAudio');
 
-function jmAdvance() {
-  if (jmAdvancing) return;
-  jmAdvancing = true;
-  jmPlayIdx++;
-  jmAdvancing = false;
-  jmPlayTrack(jmPlayIdx);
+function jmAdvance(gen) {
+  return function() {
+    if (gen !== jmGeneration) return;
+    jmPlayIdx++;
+    jmPlayTrack(jmPlayIdx, gen);
+  };
 }
 
-function jmPlayTrack(idx) {
+function jmPlayTrack(idx, gen) {
+  if (gen !== jmGeneration) return;
   if (idx >= jmPlaylist.length) {
     setStatus('Playlist ended — tap the wheel to play again.');
     document.getElementById('jmPlayer').style.display = 'none';
     return;
   }
   var item = jmPlaylist[idx];
+  jmAudio.pause();
   jmAudio.src = JM.streamUrl(item.Id);
-  jmAudio.load();
   jmAudio.play().catch(function() {});
   var artist = (item.Artists && item.Artists[0]) || item.AlbumArtist || '';
   document.getElementById('jmTrackName').textContent =
@@ -213,13 +214,18 @@ function jmPlayTrack(idx) {
   setStatus('Playing ' + jmPlaylist.length + ' tracks \u266a');
 }
 
-jmAudio.addEventListener('ended', jmAdvance);
-jmAudio.addEventListener('error', jmAdvance);
+function attachPlayerListeners(gen) {
+  var advance = jmAdvance(gen);
+  jmAudio.addEventListener('ended', advance);
+  jmAudio.addEventListener('error', advance);
+}
 
 document.getElementById('jmSkipBtn').addEventListener('click', function() {
-  jmPlayIdx++; jmPlayTrack(jmPlayIdx);
+  jmPlayIdx++;
+  jmPlayTrack(jmPlayIdx, jmGeneration);
 });
 document.getElementById('jmStopBtn').addEventListener('click', function() {
+  jmGeneration++;
   jmAudio.pause(); jmAudio.src = '';
   jmPlaylist = [];
   document.getElementById('jmPlayer').style.display = 'none';
@@ -227,9 +233,11 @@ document.getElementById('jmStopBtn').addEventListener('click', function() {
 });
 
 function startPlayback(items) {
+  jmGeneration++;
   jmAudio.pause();
   jmPlaylist = items; jmPlayIdx = 0;
-  jmPlayTrack(0);
+  attachPlayerListeners(jmGeneration);
+  jmPlayTrack(0, jmGeneration);
 }
 
 // ── Mood logic ───────────────────────────────────────────────────────────
@@ -272,9 +280,6 @@ function handleInteraction(clientX, clientY) {
   setStatus('Searching your library\u2026');
   setTrackCount(0);
 
-  // Unlock browser autoplay policy while still inside the user gesture
-  jmAudio.src = '';
-  jmAudio.play().catch(function() {});
 
   // Combine genres from the 3 nearest moods
   var genreMap = {};
