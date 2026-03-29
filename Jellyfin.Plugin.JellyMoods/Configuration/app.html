@@ -13,7 +13,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
 <body>
 <div id="jmApp">
   <h2 style="font-size:1.6em;font-weight:300;letter-spacing:0.06em;margin:0 0 6px;">&#127925; JellyMoods</h2>
-  <p style="font-size:0.85em;color:#888;margin:0 0 32px;">Tap the wheel to match music to your mood</p>
+  <p style="font-size:0.85em;color:#888;margin:0 0 32px;">Tap the wheel — up to 4 points to blend moods</p>
 
   <div id="jmWheelWrap" style="position:relative;width:min(80vw,420px);height:min(80vw,420px);margin:0 auto 8px;">
     <svg id="jmSvgWheel" viewBox="0 0 400 400" width="100%" height="100%"
@@ -58,7 +58,6 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
     <span style="position:absolute;top:14px;right:18px;font-size:0.65em;font-weight:700;color:#ffe066;line-height:1.3;text-align:right;pointer-events:none;">Happy<br>Excited</span>
     <span style="position:absolute;bottom:14px;left:18px;font-size:0.65em;font-weight:700;color:#7ba3ff;line-height:1.3;pointer-events:none;">Sad<br>Lonely</span>
     <span style="position:absolute;bottom:14px;right:18px;font-size:0.65em;font-weight:700;color:#5ee8cc;line-height:1.3;text-align:right;pointer-events:none;">Calm<br>Serene</span>
-    <div id="moodDot" style="position:absolute;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(0,0,0,0.5),0 0 14px rgba(255,255,255,0.8);transform:translate(-50%,-50%);pointer-events:none;display:none;transition:background 0.25s;"></div>
   </div>
 
   <div style="text-align:center;margin-top:36px;min-height:80px;">
@@ -66,8 +65,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
     <div id="jmMoodDesc" style="font-size:0.82em;color:#999;margin-top:6px;min-height:1.2em;"></div>
   </div>
   <div style="margin-top:20px;text-align:center;">
-    <button id="jmPlayBtn" type="button" style="display:none;padding:14px 44px;border:none;border-radius:30px;font-size:1em;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#7c6fff,#4eb8d8);color:#fff;">&#9654; Play This Mood</button>
-    <div id="jmStatus" style="margin-top:12px;font-size:0.8em;color:#777;min-height:1.2em;"></div>
+    <div id="jmStatus" style="font-size:0.8em;color:#777;min-height:1.2em;"></div>
     <div id="jmTrackCount" style="display:none;margin-top:6px;font-size:0.78em;color:#aaa;"></div>
   </div>
   <a href="/web/index.html" style="margin-top:32px;color:#555;font-size:0.8em;text-decoration:none;">&#8592; Back to Jellyfin</a>
@@ -163,67 +161,94 @@ var MOODS = [
   { name:'Depressed',   desc:'Heavy, hopeless, withdrawn',            x:0.08, y:0.08, col:'#3060e0', genres:['Slowcore','Sadcore','Dark Folk','Doom Metal','Ambient'] },
 ];
 
-var selectedValence=0, selectedArousal=0, pendingItems=[];
+var MAX_SELECTIONS = 4;
+var SELECTION_RADIUS = 0.08; // 8% of wheel radius — captures 1-3 nearest moods per tap
+var selections = []; // { valence, arousal, col, name, px, py, genres[] }
 
-function getMoodAtPoint(vx, vy){
-  var best=MOODS[0], bestDist=Infinity;
-  for(var i=0;i<MOODS.length;i++){
-    var m=MOODS[i];
-    var d=Math.sqrt((vx-m.x)*(vx-m.x)+(vy-m.y)*(vy-m.y));
-    if(d<bestDist){bestDist=d;best=m;}
+function getMoodAtPoint(vx, vy) {
+  var best = MOODS[0], bestDist = Infinity;
+  for (var i = 0; i < MOODS.length; i++) {
+    var d = Math.sqrt((vx-MOODS[i].x)*(vx-MOODS[i].x) + (vy-MOODS[i].y)*(vy-MOODS[i].y));
+    if (d < bestDist) { bestDist = d; best = MOODS[i]; }
   }
   return best;
 }
 
-function getBlendedGenres(vx, vy){
-  var RADIUS=0.35, weighted=[];
-  for(var i=0;i<MOODS.length;i++){
-    var m=MOODS[i];
-    var d=Math.sqrt((vx-m.x)*(vx-m.x)+(vy-m.y)*(vy-m.y));
-    if(d<RADIUS) weighted.push({genres:m.genres, w:1/(d*d+0.01)});
+function getMoodsInRadius(vx, vy, radius) {
+  var found = [];
+  for (var i = 0; i < MOODS.length; i++) {
+    var d = Math.sqrt((vx-MOODS[i].x)*(vx-MOODS[i].x) + (vy-MOODS[i].y)*(vy-MOODS[i].y));
+    if (d <= radius) found.push(MOODS[i]);
   }
-  weighted.sort(function(a,b){return b.w-a.w;});
-  var out={}, take=Math.min(3,weighted.length);
-  for(var j=0;j<take;j++) weighted[j].genres.forEach(function(g){out[g]=true;});
-  return Object.keys(out);
+  return found;
 }
 
-function handleInteraction(clientX, clientY){
-  var wrap=document.getElementById('jmWheelWrap');
-  var rect=wrap.getBoundingClientRect();
-  var cx=rect.left+rect.width/2, cy=rect.top+rect.height/2, r=rect.width/2;
-  var dx=clientX-cx, dy=clientY-cy;
-  if(Math.sqrt(dx*dx+dy*dy)>r) return;
+function renderDots() {
+  var wrap = document.getElementById('jmWheelWrap');
+  var old = wrap.querySelectorAll('.jm-dot');
+  for (var i = 0; i < old.length; i++) wrap.removeChild(old[i]);
+  selections.forEach(function(s) {
+    var dot = document.createElement('div');
+    dot.className = 'jm-dot';
+    dot.style.cssText = 'position:absolute;width:22px;height:22px;border-radius:50%;' +
+      'transform:translate(-50%,-50%);pointer-events:none;transition:background 0.25s;' +
+      'box-shadow:0 0 0 3px rgba(0,0,0,0.5),0 0 14px rgba(255,255,255,0.8);';
+    dot.style.background = s.col;
+    dot.style.left = s.px + 'px';
+    dot.style.top  = s.py + 'px';
+    wrap.appendChild(dot);
+  });
+}
 
-  var valence=(dx/r)*0.5+0.5;
-  var arousal=(-dy/r)*0.5+0.5;
-  selectedValence=valence; selectedArousal=arousal;
+function handleInteraction(clientX, clientY) {
+  var wrap = document.getElementById('jmWheelWrap');
+  var rect = wrap.getBoundingClientRect();
+  var cx = rect.left + rect.width/2, cy = rect.top + rect.height/2, r = rect.width/2;
+  var dx = clientX - cx, dy = clientY - cy;
+  if (Math.sqrt(dx*dx + dy*dy) > r) return;
 
-  var mood=getMoodAtPoint(valence,arousal);
-  var dot=document.getElementById('moodDot');
-  dot.style.left=(clientX-rect.left)+'px';
-  dot.style.top=(clientY-rect.top)+'px';
-  dot.style.background=mood.col;
-  dot.style.display='block';
+  var valence = (dx/r)*0.5 + 0.5;
+  var arousal  = (-dy/r)*0.5 + 0.5;
 
-  setMoodName(mood.name, mood.col);
-  setMoodDesc(mood.desc);
-  showPlayBtn(true);
-  setStatus('Searching your library…');
+  // 5th tap resets; otherwise accumulate up to 4
+  if (selections.length >= MAX_SELECTIONS) selections = [];
+
+  var nearest = getMoodAtPoint(valence, arousal);
+  var nearby  = getMoodsInRadius(valence, arousal, SELECTION_RADIUS);
+  if (nearby.length === 0) nearby = [nearest];
+
+  var genreMap = {};
+  nearby.forEach(function(m) { m.genres.forEach(function(g) { genreMap[g] = true; }); });
+
+  selections.push({
+    valence: valence, arousal: arousal,
+    col: nearest.col, name: nearest.name,
+    px: clientX - rect.left, py: clientY - rect.top,
+    genres: Object.keys(genreMap)
+  });
+
+  renderDots();
+
+  var names = selections.map(function(s) { return s.name; }).join(' + ');
+  setMoodName(names, nearest.col);
+  setMoodDesc(nearest.desc);
+  setStatus('Searching your library\u2026');
   setTrackCount(0);
-  pendingItems=[];
 
-  var genres=getBlendedGenres(valence,arousal);
-  console.log('[JellyMoods] valence='+valence.toFixed(2)+' arousal='+arousal.toFixed(2)+' genres='+genres.join(', '));
+  // Combine genres across all selection points
+  var allGenres = {};
+  selections.forEach(function(s) { s.genres.forEach(function(g) { allGenres[g] = true; }); });
+  var genres = Object.keys(allGenres);
 
   fetchTracksByGenres(genres)
-    .then(function(items){return items.length>0?items:fetchFallback();})
-    .then(function(items){
-      pendingItems=items; setTrackCount(items.length);
-      setStatus(items.length>0?'':'No tracks found — check genre tags in your library.');
+    .then(function(items) { return items.length > 0 ? items : fetchFallback(); })
+    .then(function(items) {
+      setTrackCount(items.length);
+      if (!items.length) { setStatus('No tracks found — check genre tags in your library.'); return; }
+      playItems(items);
     })
-    .catch(function(e){
-      console.error('[JellyMoods]',e);
+    .catch(function(e) {
+      console.error('[JellyMoods]', e);
       setStatus('Could not fetch tracks.');
     });
 }
@@ -238,55 +263,46 @@ svg.addEventListener('touchend', function(e) {
   handleInteraction(t.clientX, t.clientY);
 });
 
-function setStatus(t){document.getElementById('jmStatus').textContent=t;}
-function setMoodName(t,col){var el=document.getElementById('jmMoodName');el.textContent=t;el.style.color=col||'#fff';}
-function setMoodDesc(t){document.getElementById('jmMoodDesc').textContent=t;}
-function showPlayBtn(v){document.getElementById('jmPlayBtn').style.display=v?'inline-block':'none';}
-function setTrackCount(n){var el=document.getElementById('jmTrackCount');el.style.display=n>0?'block':'none';el.textContent=n>0?n+' tracks found':''}
+function setStatus(t)    { document.getElementById('jmStatus').textContent = t; }
+function setMoodName(t, col) { var el = document.getElementById('jmMoodName'); el.textContent = t; el.style.color = col || '#fff'; }
+function setMoodDesc(t)  { document.getElementById('jmMoodDesc').textContent = t; }
+function setTrackCount(n){ var el = document.getElementById('jmTrackCount'); el.style.display = n > 0 ? 'block' : 'none'; el.textContent = n > 0 ? n + ' tracks found' : ''; }
 
-function fetchTracksByGenres(genres){
-  if(!JM.token||!JM.userId) return Promise.resolve([]);
-  var params=new URLSearchParams({IncludeItemTypes:'Audio',Recursive:'true',SortBy:'Random',Limit:'50',Fields:'Genres,MediaSources'});
-  if(genres.length>0) params.set('Genres',genres.join(','));
-  return fetch(JM.server+'/Users/'+JM.userId+'/Items?'+params,{headers:JM.headers()})
-    .then(function(r){return r.json();})
-    .then(function(d){return d.Items||[];});
-}
-function fetchFallback(){
-  if(!JM.token||!JM.userId) return Promise.resolve([]);
-  var params=new URLSearchParams({IncludeItemTypes:'Audio',Recursive:'true',SortBy:'Random',Limit:'30'});
-  return fetch(JM.server+'/Users/'+JM.userId+'/Items?'+params,{headers:JM.headers()})
-    .then(function(r){return r.json();})
-    .then(function(d){return d.Items||[];});
+function fetchTracksByGenres(genres) {
+  if (!JM.token || !JM.userId) return Promise.resolve([]);
+  var params = new URLSearchParams({IncludeItemTypes:'Audio', Recursive:'true', SortBy:'Random', Limit:'50', Fields:'Genres,MediaSources'});
+  if (genres.length > 0) params.set('Genres', genres.join(','));
+  return fetch(JM.server + '/Users/' + JM.userId + '/Items?' + params, {headers: JM.headers()})
+    .then(function(r) { return r.json(); })
+    .then(function(d) { return d.Items || []; });
 }
 
-function playItems(items){
-  if(!items||!items.length){setStatus('No matching tracks found.');return;}
-  if(!JM.token||!JM.userId){setStatus('Not logged in — open via Jellyfin.');return;}
-  setStatus('Starting playback…');
-  var ids=items.map(function(i){return i.Id;});
-  fetch(JM.server+'/Sessions?ControllableByUserId='+JM.userId,{headers:JM.headers()})
-    .then(function(r){return r.json();})
-    .then(function(sessions){
-      var session=sessions.filter(function(s){return s.UserId===JM.userId;})[0];
-      if(!session){setStatus('No active session — open the web player first.');return;}
-      return fetch(JM.server+'/Sessions/'+session.Id+'/Playing',{
-        method:'POST',
-        headers:Object.assign({'Content-Type':'application/json'},JM.headers()),
-        body:JSON.stringify({PlayCommand:'PlayNow',ItemIds:ids,StartIndex:0})
-      }).then(function(){setStatus('Playing '+items.length+' tracks ♪');});
+function fetchFallback() {
+  if (!JM.token || !JM.userId) return Promise.resolve([]);
+  var params = new URLSearchParams({IncludeItemTypes:'Audio', Recursive:'true', SortBy:'Random', Limit:'30'});
+  return fetch(JM.server + '/Users/' + JM.userId + '/Items?' + params, {headers: JM.headers()})
+    .then(function(r) { return r.json(); })
+    .then(function(d) { return d.Items || []; });
+}
+
+function playItems(items) {
+  if (!items || !items.length) { setStatus('No matching tracks found.'); return; }
+  if (!JM.token || !JM.userId) { setStatus('Not logged in — open via Jellyfin.'); return; }
+  setStatus('Starting playback\u2026');
+  var ids = items.map(function(i) { return i.Id; });
+  fetch(JM.server + '/Sessions?ControllableByUserId=' + JM.userId, {headers: JM.headers()})
+    .then(function(r) { return r.json(); })
+    .then(function(sessions) {
+      var session = sessions.filter(function(s) { return s.UserId === JM.userId; })[0];
+      if (!session) { setStatus('No active session — open the web player first.'); return; }
+      return fetch(JM.server + '/Sessions/' + session.Id + '/Playing', {
+        method: 'POST',
+        headers: Object.assign({'Content-Type':'application/json'}, JM.headers()),
+        body: JSON.stringify({PlayCommand:'PlayNow', ItemIds:ids, StartIndex:0})
+      }).then(function() { setStatus('Playing ' + items.length + ' tracks \u266a'); });
     })
-    .catch(function(e){console.error('[JellyMoods]',e);setStatus('Playback error: '+e.message);});
+    .catch(function(e) { console.error('[JellyMoods]', e); setStatus('Playback error: ' + e.message); });
 }
-
-document.getElementById('jmPlayBtn').onclick=function(){
-  if(pendingItems.length>0){playItems(pendingItems);return;}
-  setStatus('Fetching tracks…');
-  fetchTracksByGenres(getBlendedGenres(selectedValence,selectedArousal))
-    .then(function(items){return items.length>0?items:fetchFallback();})
-    .then(playItems)
-    .catch(function(){setStatus('Could not fetch tracks.');});
-};
 
 })();
 </script>
