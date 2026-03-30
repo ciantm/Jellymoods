@@ -399,13 +399,8 @@ function handleInteraction(clientX, clientY) {
   nearest.forEach(function(m) { m.genres.forEach(function(g) { genreMap[g] = true; }); });
   var genres = Object.keys(genreMap);
 
-  // Apply era filter if set — intersect mood genres with era genres, fallback to mood-only if empty
-  if (jmEraGenres !== null) {
-    var eraSet = {};
-    jmEraGenres.forEach(function(g) { eraSet[g] = true; });
-    var filtered = genres.filter(function(g) { return eraSet[g]; });
-    if (filtered.length > 0) genres = filtered;
-  }
+  // If a genre zone is selected, use it as the search filter (overrides mood genres)
+  if (jmEraGenres !== null) genres = jmEraGenres;
 
   fetchTracksByGenres(genres)
     .then(function(items) { return items.length > 0 ? items : fetchFallback(); })
