@@ -8,7 +8,8 @@
 * { box-sizing:border-box; margin:0; padding:0; }
 body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; overflow-x:hidden; }
 #jmApp { display:flex; flex-direction:column; align-items:center; padding:24px 16px 48px; width:100%; }
-#jmEraArea { width:100%; max-width:420px; margin-top:18px; }
+#jmEraArea { width:100%; max-width:min(92vw,640px); margin-top:18px; }
+#jmWheelPrompt { position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:2;transition:opacity 0.4s; }
 #jmEraWrap { position:relative; width:100%; touch-action:none; cursor:pointer; }
 #jmEraBar { width:100%; height:44px; border-radius:10px; background:linear-gradient(to right,#c8b860,#1a5070,#6a7840,#b040a0,#c06020,#b02010,#806000,#200010); }
 #jmEraHighlight { position:absolute; top:0; height:44px; border-radius:10px; background:rgba(255,255,255,0.18); border:2px solid rgba(255,255,255,0.7); pointer-events:none; transition:left 0.15s,width 0.15s; display:none; }
@@ -26,7 +27,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
 <body>
 <div id="jmApp">
   <h2 style="font-size:1.6em;font-weight:300;letter-spacing:0.06em;margin:0 0 6px;">&#127925; JellyMoods</h2>
-  <p style="font-size:0.85em;color:#888;margin:0 0 32px;">Tap the wheel — plays the 3 nearest moods instantly</p>
+  <p style="font-size:0.85em;color:#888;margin:0 0 32px;">Choose a genre, tap your mood to play</p>
 
   <div id="jmWheelWrap" style="position:relative;width:min(80vw,420px);height:min(80vw,420px);margin:0 auto 8px;">
     <svg id="jmSvgWheel" viewBox="0 0 400 400" width="100%" height="100%"
@@ -63,6 +64,10 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
       <line x1="4" y1="200" x2="396" y2="200" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="4,5"/>
       <circle cx="200" cy="200" r="196" fill="transparent"/>
     </svg>
+    <div id="jmWheelPrompt">
+      <div style="font-size:1.1em;font-weight:300;letter-spacing:0.1em;color:rgba(255,255,255,0.75);text-shadow:0 0 24px #000,0 0 8px #000;">Tap your mood</div>
+      <div style="font-size:0.72em;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.38);margin-top:6px;text-shadow:0 0 12px #000;">to play</div>
+    </div>
     <span style="position:absolute;top:-24px;left:50%;transform:translateX(-50%);font-size:0.65em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);pointer-events:none;">Active</span>
     <span style="position:absolute;bottom:-24px;left:50%;transform:translateX(-50%);font-size:0.65em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);pointer-events:none;">Passive</span>
     <span style="position:absolute;left:-62px;top:50%;transform:translateY(-50%);font-size:0.65em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);pointer-events:none;">Negative</span>
@@ -83,7 +88,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
   </div>
 
   <div style="text-align:center;margin-top:36px;min-height:80px;">
-    <div id="jmMoodName" style="font-size:1.4em;font-weight:300;letter-spacing:0.08em;color:#fff;min-height:1.6em;">&#8212; How are you feeling? &#8212;</div>
+    <div id="jmMoodName" style="font-size:1.4em;font-weight:300;letter-spacing:0.08em;color:#fff;min-height:1.6em;"></div>
     <div id="jmMoodDesc" style="font-size:0.82em;color:#999;margin-top:6px;min-height:1.2em;"></div>
   </div>
 
@@ -100,7 +105,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
   </div>
 
   <a href="/web/index.html" style="margin-top:32px;color:#555;font-size:0.8em;text-decoration:none;">&#8592; Back to Jellyfin</a>
-  <div style="margin-top:12px;font-size:0.65em;color:#444;">v3.0.31.0</div>
+  <div style="margin-top:12px;font-size:0.65em;color:#444;">v3.0.32.0</div>
 </div>
 
 <script>
@@ -287,21 +292,26 @@ var jmEraGenres = null; // null = no era filter active
       });
     });
 
-    // Set era filter and trigger playback immediately
+    // Set genre filter
     var genreMap = {};
     selected.forEach(function(e) { e.genres.forEach(function(g) { genreMap[g] = true; }); });
     jmEraGenres = Object.keys(genreMap);
 
-    setStatus('Searching\u2026');
-    setTrackCount(0);
-    fetchTracksByGenres(jmEraGenres)
-      .then(function(items) { return items.length > 0 ? items : fetchFallback(); })
-      .then(function(items) {
-        setTrackCount(items.length);
-        if (!items.length) { setStatus('No tracks found for this genre.'); return; }
-        startPlayback(items);
-      })
-      .catch(function() { setStatus('Could not fetch tracks.'); });
+    // Replay with new genre filter only if a mood was already selected
+    if (jmMoodGenres !== null) {
+      setStatus('Searching\u2026');
+      setTrackCount(0);
+      var eraG = jmEraGenres, moodG = jmMoodGenres;
+      fetchTracksByGenres(eraG)
+        .then(function(items) { return items.length > 0 ? items : fetchTracksByGenres(moodG); })
+        .then(function(items) { return items.length > 0 ? items : fetchFallback(); })
+        .then(function(items) {
+          setTrackCount(items.length);
+          if (!items.length) { setStatus('No tracks found.'); return; }
+          startPlayback(items);
+        })
+        .catch(function() { setStatus('Could not fetch tracks.'); });
+    }
   }
 
   wrap.addEventListener('click', function(e) { handleEraInteraction(e.clientX); });
@@ -315,7 +325,15 @@ var jmEraGenres = null; // null = no era filter active
 var jmPlaylist   = [];
 var jmPlayIdx    = 0;
 var jmGeneration = 0;
+var jmMoodGenres = null; // set when a mood is tapped, null until then
 var jmAudio      = document.getElementById('jmAudio');
+
+function jmShowPrompt(visible) {
+  var p = document.getElementById('jmWheelPrompt');
+  if (!p) return;
+  if (visible) { p.style.display = 'block'; setTimeout(function(){ p.style.opacity = '1'; }, 10); }
+  else { p.style.opacity = '0'; setTimeout(function(){ p.style.display = 'none'; }, 400); }
+}
 
 function jmAdvance(gen) {
   return function() {
@@ -386,10 +404,12 @@ document.getElementById('jmStopBtn').addEventListener('click', function() {
   jmAudio.pause(); jmAudio.src = '';
   jmPlaylist = [];
   document.getElementById('jmPlayer').style.display = 'none';
-  setStatus(''); setTrackCount(0);
+  setStatus(''); setTrackCount(0); setMoodName('', ''); setMoodDesc('');
   if ('mediaSession' in navigator) navigator.mediaSession.metadata = null;
-  // Clear era filter and reset highlight
+  // Clear mood and era state
+  jmMoodGenres = null;
   jmEraGenres = null;
+  jmShowPrompt(true);
   var hl = document.getElementById('jmEraHighlight');
   if (hl) hl.style.display = 'none';
   ['jmEraLabelsTop','jmEraLabels'].forEach(function(id) {
@@ -442,6 +462,7 @@ function handleInteraction(clientX, clientY) {
   dot.style.top  = (clientY - rect.top)  + 'px';
   wrap.appendChild(dot);
 
+  jmShowPrompt(false);
   setMoodName(nearest.map(function(m) { return m.name; }).join(' + '), nearest1.col);
   setMoodDesc(nearest1.desc);
   setTrackCount(0);
@@ -450,12 +471,13 @@ function handleInteraction(clientX, clientY) {
   var genreMap = {};
   nearest.forEach(function(m) { m.genres.forEach(function(g) { genreMap[g] = true; }); });
   var genres = Object.keys(genreMap);
+  jmMoodGenres = genres; // remember for when genre zone changes
 
   // If a genre zone is selected, use it as the search filter (overrides mood genres)
   var moodGenres = genres;
   if (jmEraGenres !== null) genres = jmEraGenres;
 
-  setStatus('Searching: ' + genres.join(', '));
+  setStatus('Searching\u2026');
 
   fetchTracksByGenres(genres)
     .then(function(items) {
