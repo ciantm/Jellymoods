@@ -250,7 +250,6 @@ var jmEraGenres = null; // null = no era filter active
     var genreMap = {};
     selected.forEach(function(e) { e.genres.forEach(function(g) { genreMap[g] = true; }); });
     jmEraGenres = Object.keys(genreMap);
-    setStatus('Era set — tap the wheel to play');
   }
 
   wrap.addEventListener('click', function(e) { handleEraInteraction(e.clientX); });
