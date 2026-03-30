@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>JellyMoods</title>
+<title>Musian</title>
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
 body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; overflow-x:hidden; }
@@ -26,7 +26,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
 </head>
 <body>
 <div id="jmApp">
-  <h2 style="font-size:1.6em;font-weight:300;letter-spacing:0.06em;margin:0 0 6px;">&#127925; JellyMoods</h2>
+  <h2 style="font-size:1.6em;font-weight:300;letter-spacing:0.06em;margin:0 0 6px;">&#127925; Musian</h2>
   <p style="font-size:0.85em;color:#888;margin:0 0 32px;">Choose a genre, tap your mood to play</p>
 
   <div id="jmWheelWrap" style="position:relative;width:min(80vw,420px);height:min(80vw,420px);margin:0 auto 8px;">
@@ -140,7 +140,7 @@ var JM = {
   },
   headers: function() {
     return { 'X-Emby-Authorization':
-      'MediaBrowser Client="JellyMoods",Device="Browser",DeviceId="jm1",Version="1.0"' +
+      'MediaBrowser Client="Musian",Device="Browser",DeviceId="jm1",Version="1.0"' +
       (this.token ? ',Token="' + this.token + '"' : '') };
   },
   streamUrl: function(itemId) {
@@ -356,7 +356,7 @@ function jmUpdateMediaSession(item) {
   if (!('mediaSession' in navigator)) return;
   var artist = (item.Artists && item.Artists[0]) || item.AlbumArtist || '';
   navigator.mediaSession.metadata = new MediaMetadata({
-    title:  item.Name  || 'JellyMoods',
+    title:  item.Name  || 'Musian',
     artist: artist,
     album:  item.Album || '',
   });
@@ -502,7 +502,7 @@ function handleInteraction(clientX, clientY) {
       startPlayback(items);
     })
     .catch(function(e) {
-      console.error('[JellyMoods]', e);
+      console.error('[Musian]', e);
       setStatus('Could not fetch tracks.');
     });
 }

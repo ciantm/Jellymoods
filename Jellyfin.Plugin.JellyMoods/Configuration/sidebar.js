@@ -1,12 +1,12 @@
 /**
- * JellyMoods sidebar injector — loaded via config.json plugins array.
- * Injects a "JellyMoods" nav item into libraryMenuOptions after the Music entry.
+ * Musian sidebar injector — loaded via config.json plugins array.
+ * Injects a "Musian" nav item into libraryMenuOptions after the Music entry.
  */
 define([], function () {
   'use strict';
 
   var ITEM_ID  = 'jellymoods-nav-item';
-  var APP_URL  = '/JellyMoods/app';
+  var APP_URL  = '/Musian/app';
   var _timer   = null;
 
   function buildItem() {
@@ -17,7 +17,7 @@ define([], function () {
     a.className = 'lnkMediaFolder navMenuOption';
     a.innerHTML =
       '<span class="material-icons navMenuOptionIcon music_note" aria-hidden="true"></span>' +
-      '<span class="navMenuOptionText">JellyMoods</span>';
+      '<span class="navMenuOptionText">Musian</span>';
     a.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();

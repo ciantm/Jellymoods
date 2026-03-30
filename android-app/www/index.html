@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>JellyMoods</title>
+<title>Musian</title>
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
 body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh;
@@ -11,25 +11,42 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh;
 .card { width:100%; max-width:360px; }
 h1 { font-size:1.8em; font-weight:300; letter-spacing:0.08em; text-align:center; margin-bottom:6px; }
 .sub { text-align:center; font-size:0.85em; color:#888; margin-bottom:36px; }
-label { display:block; font-size:0.78em; letter-spacing:0.1em; text-transform:uppercase;
-        color:#888; margin-bottom:6px; }
+label { display:block; font-size:0.78em; letter-spacing:0.1em; text-transform:uppercase; color:#888; margin-bottom:6px; }
 input { width:100%; background:#1e1e1e; border:1px solid #333; border-radius:8px;
         color:#fff; font-size:0.95em; padding:12px 14px; margin-bottom:20px; outline:none; }
 input:focus { border-color:#555; }
-button { width:100%; padding:13px; border:none; border-radius:24px; background:#fff;
-         color:#111; font-size:0.95em; font-weight:700; cursor:pointer; letter-spacing:0.04em; }
-button:active { opacity:0.85; }
+.type-row { display:flex; gap:8px; margin-bottom:20px; }
+.type-btn { flex:1; padding:9px 4px; border:2px solid #333; border-radius:10px;
+            background:none; color:#666; font-size:0.7em; font-weight:600;
+            letter-spacing:0.04em; text-transform:uppercase; cursor:pointer; line-height:1.4; }
+.type-btn.active { border-color:#ccc; color:#fff; }
+#jmDetectMsg { font-size:0.78em; color:#666; margin-bottom:16px; min-height:1.2em; text-align:center; }
+#jmPlexNote { font-size:0.75em; color:#666; margin-top:-14px; margin-bottom:20px; display:none; }
+button#jmSignIn { width:100%; padding:13px; border:none; border-radius:24px; background:#fff;
+                  color:#111; font-size:0.95em; font-weight:700; cursor:pointer; letter-spacing:0.04em; }
+button#jmSignIn:active { opacity:0.85; }
 #jmError { margin-top:16px; text-align:center; font-size:0.82em; color:#f88; min-height:1.2em; }
 #jmSpinner { display:none; text-align:center; margin-top:16px; font-size:0.82em; color:#888; }
 </style>
 </head>
 <body>
 <div class="card">
-  <h1>&#127925; JellyMoods</h1>
-  <p class="sub">Sign in to your Jellyfin server</p>
+  <h1>&#127925; Musian</h1>
+  <p class="sub">Connect to your music server</p>
 
   <label>Server URL</label>
-  <input id="jmServer" type="url" placeholder="http://192.168.1.10:8096" autocomplete="off" autocapitalize="none" spellcheck="false"/>
+  <input id="jmServer" type="url" placeholder="http://192.168.1.10:8096"
+         autocomplete="off" autocapitalize="none" spellcheck="false"/>
+
+  <div id="jmDetectMsg"></div>
+
+  <div class="type-row">
+    <button class="type-btn active" data-type="jellyfin">Jellyfin</button>
+    <button class="type-btn" data-type="subsonic">Navidrome<br>Subsonic</button>
+    <button class="type-btn" data-type="plex">Plex</button>
+  </div>
+
+  <div id="jmPlexNote">Enter your plex.tv account credentials</div>
 
   <label>Username</label>
   <input id="jmUser" type="text" autocomplete="username" autocapitalize="none"/>
@@ -44,67 +61,167 @@ button:active { opacity:0.85; }
 
 <script>
 (function() {
-  // Pre-fill server URL if previously saved
+  var selectedType = 'jellyfin';
+
+  // Restore previous server/type
   var saved = null;
   try { saved = JSON.parse(localStorage.getItem('jm_auth')); } catch(e) {}
-  if (saved && saved.serverUrl) {
-    document.getElementById('jmServer').value = saved.serverUrl;
-  }
+  if (saved && saved.serverUrl) document.getElementById('jmServer').value = saved.serverUrl;
+  if (saved && saved.type && saved.serverUrl) { window.location.replace('app.html'); return; }
+  if (saved && saved.type) setType(saved.type);
 
-  // If already logged in, go straight to app
-  if (saved && saved.accessToken) {
-    window.location.replace('app.html');
-    return;
-  }
-
-  document.getElementById('jmSignIn').addEventListener('click', signIn);
-  document.getElementById('jmPass').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') signIn();
+  // Type selector
+  document.querySelector('.type-row').addEventListener('click', function(e) {
+    var btn = e.target.closest('.type-btn');
+    if (btn) setType(btn.dataset.type);
   });
 
+  function setType(type) {
+    selectedType = type;
+    document.querySelectorAll('.type-btn').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.type === type);
+    });
+    document.getElementById('jmPlexNote').style.display = type === 'plex' ? 'block' : 'none';
+  }
+
+  // Auto-detect server type on URL blur
+  document.getElementById('jmServer').addEventListener('blur', function() {
+    var url = this.value.replace(/\/$/, '').trim();
+    if (!url) return;
+    detect(url);
+  });
+
+  function fetchQuick(url) {
+    var ctrl = new AbortController();
+    setTimeout(function() { ctrl.abort(); }, 4000);
+    return fetch(url, { signal: ctrl.signal });
+  }
+
+  function detect(url) {
+    var msg = document.getElementById('jmDetectMsg');
+    msg.textContent = 'Detecting…';
+
+    var jf = fetchQuick(url + '/System/Info')
+      .then(function(r) { return r.json(); })
+      .then(function(d) { return (d.ProductName || d.ServerName || '').toLowerCase().indexOf('jellyfin') !== -1 ? 'jellyfin' : null; })
+      .catch(function() { return null; });
+
+    var sub = fetchQuick(url + '/rest/ping.view?u=x&p=x&v=1.16.1&c=Musian&f=json')
+      .then(function(r) { return r.json(); })
+      .then(function(d) { return d['subsonic-response'] ? 'subsonic' : null; })
+      .catch(function() { return null; });
+
+    var plex = fetchQuick(url + '/identity')
+      .then(function(r) { return r.json(); })
+      .then(function(d) { return (d.MediaContainer && d.MediaContainer.machineIdentifier) ? 'plex' : null; })
+      .catch(function() { return null; });
+
+    Promise.all([jf, sub, plex]).then(function(r) {
+      var found = r[0] || r[1] || r[2];
+      if (found) {
+        setType(found);
+        msg.textContent = 'Detected: ' + {jellyfin:'Jellyfin', subsonic:'Navidrome / Subsonic', plex:'Plex'}[found];
+        msg.style.color = '#5c5';
+      } else {
+        msg.textContent = 'Could not detect — select server type above';
+        msg.style.color = '#888';
+      }
+    });
+  }
+
+  // Sign in
+  document.getElementById('jmSignIn').addEventListener('click', signIn);
+  document.getElementById('jmPass').addEventListener('keydown', function(e) { if (e.key === 'Enter') signIn(); });
+
+  function showError(msg) {
+    document.getElementById('jmSpinner').style.display = 'none';
+    document.getElementById('jmSignIn').style.display = 'block';
+    document.getElementById('jmError').textContent = msg;
+  }
+
   function signIn() {
-    var server  = document.getElementById('jmServer').value.replace(/\/$/, '').trim();
-    var user    = document.getElementById('jmUser').value.trim();
-    var pass    = document.getElementById('jmPass').value;
-    var errEl   = document.getElementById('jmError');
-    var spinner = document.getElementById('jmSpinner');
-
-    errEl.textContent = '';
-
-    if (!server) { errEl.textContent = 'Please enter a server URL.'; return; }
-    if (!user)   { errEl.textContent = 'Please enter a username.'; return; }
+    var server = document.getElementById('jmServer').value.replace(/\/$/, '').trim();
+    var user   = document.getElementById('jmUser').value.trim();
+    var pass   = document.getElementById('jmPass').value;
+    document.getElementById('jmError').textContent = '';
+    if (!server) { showError('Please enter a server URL.'); return; }
+    if (!user)   { showError('Please enter a username.'); return; }
 
     document.getElementById('jmSignIn').style.display = 'none';
-    spinner.style.display = 'block';
+    document.getElementById('jmSpinner').style.display = 'block';
 
-    fetch(server + '/Users/AuthenticateByName', {
+    var p = selectedType === 'subsonic' ? signInSubsonic(server, user, pass)
+          : selectedType === 'plex'     ? signInPlex(server, user, pass)
+          :                               signInJellyfin(server, user, pass);
+
+    p.then(function(auth) {
+      localStorage.setItem('jm_auth', JSON.stringify(auth));
+      window.location.replace('app.html');
+    }).catch(function(e) { showError(e.message || 'Sign in failed.'); });
+  }
+
+  function signInJellyfin(server, user, pass) {
+    return fetch(server + '/Users/AuthenticateByName', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Emby-Authorization': 'MediaBrowser Client="JellyMoods",Device="Android",DeviceId="jm-android",Version="1.0"'
+        'X-Emby-Authorization': 'MediaBrowser Client="Musian",Device="Musian",DeviceId="jm1",Version="1.0"'
       },
       body: JSON.stringify({ Username: user, Pw: pass })
-    })
-    .then(function(r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
+    }).then(function(r) {
+      if (r.status === 401) throw new Error('Wrong username or password.');
+      if (!r.ok) throw new Error('Server error (' + r.status + ').');
       return r.json();
-    })
-    .then(function(data) {
-      localStorage.setItem('jm_auth', JSON.stringify({
-        serverUrl:   server,
-        accessToken: data.AccessToken,
-        userId:      data.User.Id
-      }));
-      window.location.replace('app.html');
-    })
-    .catch(function(e) {
-      spinner.style.display = 'none';
-      document.getElementById('jmSignIn').style.display = 'block';
-      if (e.message === 'HTTP 401') {
-        errEl.textContent = 'Wrong username or password.';
-      } else {
-        errEl.textContent = 'Could not reach server. Check the URL.';
+    }).then(function(d) {
+      return { type:'jellyfin', serverUrl:server, accessToken:d.AccessToken, userId:d.User.Id };
+    });
+  }
+
+  function signInSubsonic(server, user, pass) {
+    var url = server + '/rest/ping.view?u=' + encodeURIComponent(user) +
+              '&p=' + encodeURIComponent(pass) + '&v=1.16.1&c=Musian&f=json';
+    return fetch(url).then(function(r) { return r.json(); }).then(function(d) {
+      var resp = d['subsonic-response'];
+      if (!resp) throw new Error('Not a Subsonic-compatible server.');
+      if (resp.status !== 'ok') {
+        var msg = resp.error && resp.error.message ? resp.error.message : 'Wrong username or password.';
+        throw new Error(msg);
       }
+      return { type:'subsonic', serverUrl:server, username:user, password:pass };
+    });
+  }
+
+  function signInPlex(server, user, pass) {
+    return fetch('https://plex.tv/users/sign_in.json', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Basic ' + btoa(unescape(encodeURIComponent(user + ':' + pass))),
+        'X-Plex-Client-Identifier': 'jm1',
+        'X-Plex-Product': 'Musian',
+        'X-Plex-Version': '1.0',
+        'Accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'login=' + encodeURIComponent(user) + '&password=' + encodeURIComponent(pass)
+    }).then(function(r) {
+      if (r.status === 401) throw new Error('Wrong plex.tv username or password.');
+      if (!r.ok) throw new Error('plex.tv error (' + r.status + ').');
+      return r.json();
+    }).then(function(d) {
+      var token = d.user && d.user.authToken;
+      if (!token) throw new Error('Could not get Plex token.');
+      // Find music library section
+      return fetch(server + '/library/sections?X-Plex-Token=' + token, {
+        headers: { 'Accept': 'application/json' }
+      }).then(function(r) {
+        if (!r.ok) throw new Error('Could not reach Plex server (' + r.status + ').');
+        return r.json();
+      }).then(function(d) {
+        var sections = (d.MediaContainer && d.MediaContainer.Directory) || [];
+        var music = sections.filter(function(s) { return s.type === 'artist'; });
+        if (!music.length) throw new Error('No music library found on this Plex server.');
+        return { type:'plex', serverUrl:server, token:token, sectionId:music[0].key };
+      });
     });
   }
 })();

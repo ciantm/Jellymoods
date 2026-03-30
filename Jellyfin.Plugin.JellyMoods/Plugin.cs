@@ -9,7 +9,7 @@ using MediaBrowser.Model.Serialization;
 namespace Jellyfin.Plugin.JellyMoods;
 
 /// <summary>
-/// JellyMoods — play music from your library based on a visual mood wheel.
+/// Musian — play music from your library based on a visual mood wheel.
 /// </summary>
 public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
 {
@@ -33,7 +33,7 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     public override Guid Id => Guid.Parse("6c8a80b7-3e2f-4d5a-9b1c-f7e8d9a0b2c3");
 
     /// <inheritdoc />
-    public override string Name => "JellyMoods";
+    public override string Name => "Musian";
 
     /// <inheritdoc />
     public override string Description =>
@@ -51,18 +51,18 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
                 // Page name must be lowercase, no spaces — used in the URL:
                 // /web/index.html#!/configurationpage?name=jellymoods
                 Name                 = "jellymoods",
-                DisplayName          = "JellyMoods",
+                DisplayName          = "Musian",
                 EmbeddedResourcePath = $"{ns}.Configuration.moodPicker.html",
                 EnableInMainMenu     = true,   // shows in sidebar for ALL users
                 MenuIcon             = "music_note",
                 MenuSection          = "",
             },
 
-            // ── Admin settings page (Dashboard → Plugins → JellyMoods Settings) ──
+            // ── Admin settings page (Dashboard → Plugins → Musian Settings) ──
             new PluginPageInfo
             {
                 Name                 = "jellymoodsconfig",
-                DisplayName          = "JellyMoods Settings",
+                DisplayName          = "Musian Settings",
                 EmbeddedResourcePath = $"{ns}.Configuration.configPage.html",
                 EnableInMainMenu     = false,
             },

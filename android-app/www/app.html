@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>JellyMoods</title>
+<title>Musian</title>
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
 body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; overflow-x:hidden; }
 #jmApp { display:flex; flex-direction:column; align-items:center; padding:24px 16px 48px; width:100%; }
-#jmEraArea { width:100%; max-width:min(92vw,640px); margin-top:18px; }
+#jmEraArea { width:100%; max-width:min(80vw,420px); margin-top:18px; }
 #jmWheelPrompt { position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:2;transition:opacity 0.4s; }
 #jmEraWrap { position:relative; width:100%; touch-action:none; cursor:pointer; }
 #jmEraBar { width:100%; height:44px; border-radius:10px; background:linear-gradient(to right,#c8b860,#1a5070,#6a7840,#b040a0,#c06020,#b02010,#806000,#200010); }
@@ -26,7 +26,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
 </head>
 <body>
 <div id="jmApp">
-  <h2 style="font-size:1.6em;font-weight:300;letter-spacing:0.06em;margin:0 0 6px;">&#127925; JellyMoods</h2>
+  <h2 style="font-size:1.6em;font-weight:300;letter-spacing:0.06em;margin:0 0 6px;">&#127925; Musian</h2>
   <p style="font-size:0.85em;color:#888;margin:0 0 32px;">Choose a genre, tap your mood to play</p>
 
   <div id="jmWheelWrap" style="position:relative;width:min(80vw,420px);height:min(80vw,420px);margin:0 auto 8px;">
@@ -68,14 +68,14 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
       <div style="font-size:1.1em;font-weight:300;letter-spacing:0.1em;color:rgba(255,255,255,0.75);text-shadow:0 0 24px #000,0 0 8px #000;">Tap your mood</div>
       <div style="font-size:0.72em;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.38);margin-top:6px;text-shadow:0 0 12px #000;">to play</div>
     </div>
-    <span style="position:absolute;top:-24px;left:50%;transform:translateX(-50%);font-size:0.65em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);pointer-events:none;">Active</span>
-    <span style="position:absolute;bottom:-24px;left:50%;transform:translateX(-50%);font-size:0.65em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);pointer-events:none;">Passive</span>
-    <span style="position:absolute;left:-62px;top:50%;transform:translateY(-50%);font-size:0.65em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);pointer-events:none;">Negative</span>
-    <span style="position:absolute;right:-62px;top:50%;transform:translateY(-50%);font-size:0.65em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);pointer-events:none;">Positive</span>
-    <span style="position:absolute;top:14px;left:18px;font-size:0.65em;font-weight:700;color:#ff7070;line-height:1.3;pointer-events:none;">Angry<br>Tense</span>
-    <span style="position:absolute;top:14px;right:18px;font-size:0.65em;font-weight:700;color:#ffe066;line-height:1.3;text-align:right;pointer-events:none;">Happy<br>Excited</span>
-    <span style="position:absolute;bottom:14px;left:18px;font-size:0.65em;font-weight:700;color:#7ba3ff;line-height:1.3;pointer-events:none;">Sad<br>Lonely</span>
-    <span style="position:absolute;bottom:14px;right:18px;font-size:0.65em;font-weight:700;color:#5ee8cc;line-height:1.3;text-align:right;pointer-events:none;">Calm<br>Serene</span>
+    <span style="position:absolute;top:18px;left:50%;transform:translateX(-50%);font-size:0.65em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);pointer-events:none;text-shadow:0 0 8px #000;">Active</span>
+    <span style="position:absolute;bottom:18px;left:50%;transform:translateX(-50%);font-size:0.65em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);pointer-events:none;text-shadow:0 0 8px #000;">Passive</span>
+    <span style="position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:0.65em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);pointer-events:none;text-shadow:0 0 8px #000;">Negative</span>
+    <span style="position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:0.65em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);pointer-events:none;text-shadow:0 0 8px #000;">Positive</span>
+    <span style="position:absolute;top:32px;left:32px;font-size:0.65em;font-weight:700;color:#ff7070;line-height:1.3;pointer-events:none;text-shadow:0 0 8px #000;">Angry<br>Tense</span>
+    <span style="position:absolute;top:32px;right:32px;font-size:0.65em;font-weight:700;color:#ffe066;line-height:1.3;text-align:right;pointer-events:none;text-shadow:0 0 8px #000;">Happy<br>Excited</span>
+    <span style="position:absolute;bottom:32px;left:32px;font-size:0.65em;font-weight:700;color:#7ba3ff;line-height:1.3;pointer-events:none;text-shadow:0 0 8px #000;">Sad<br>Lonely</span>
+    <span style="position:absolute;bottom:32px;right:32px;font-size:0.65em;font-weight:700;color:#5ee8cc;line-height:1.3;text-align:right;pointer-events:none;text-shadow:0 0 8px #000;">Calm<br>Serene</span>
   </div>
 
   <div id="jmEraArea">
@@ -109,69 +109,267 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
 </div>
 
 <script>
-// ── Auth ─────────────────────────────────────────────────────────────────────
-var JM = {
-  server: '',
-  token: null,
-  userId: null,
-  init: function() {
-    try {
-      var auth = JSON.parse(localStorage.getItem('jm_auth'));
-      if (auth && auth.accessToken) {
-        this.server  = auth.serverUrl;
-        this.token   = auth.accessToken;
-        this.userId  = auth.userId;
-        return true;
-      }
-    } catch(e) {}
-    return false;
-  },
-  headers: function() {
-    return { 'X-Emby-Authorization':
-      'MediaBrowser Client="JellyMoods",Device="Android",DeviceId="jm-android",Version="1.0"' +
-      (this.token ? ',Token="' + this.token + '"' : '') };
-  },
-  streamUrl: function(itemId) {
-    return this.server + '/Audio/' + itemId + '/universal' +
-      '?UserId=' + this.userId +
-      '&DeviceId=jm-android' +
-      '&MaxStreamingBitrate=140000000' +
-      '&Container=mp3,aac,m4a,flac,ogg,opus,webma,webm,wav' +
-      '&AudioCodec=aac,mp3,flac,opus,vorbis' +
-      '&TranscodingContainer=mp3' +
-      '&TranscodingProtocol=http' +
-      '&api_key=' + this.token;
-  }
-};
+// ── Backend adapters ──────────────────────────────────────────────────────────
+var jmGenreCache = null;
+var Backend = null;
 
-if (!JM.init()) {
-  window.location.replace('index.html');
+function expandGenres(seeds) {
+  if (!jmGenreCache || !jmGenreCache.length) return seeds;
+  var result = {};
+  seeds.forEach(function(seed) {
+    result[seed] = true;
+    var sn = seed.toLowerCase().replace(/[^a-z0-9]/g, '');
+    jmGenreCache.forEach(function(g) {
+      if (g.toLowerCase().replace(/[^a-z0-9]/g, '').indexOf(sn) !== -1) result[g] = true;
+    });
+  });
+  return Object.keys(result);
 }
+
+function makeJellyfinBackend(auth) {
+  function headers() {
+    return { 'X-Emby-Authorization':
+      'MediaBrowser Client="Musian",Device="Android",DeviceId="jm-android",Version="1.0"' +
+      ',Token="' + auth.accessToken + '"' };
+  }
+  return {
+    loadGenreCache: function() {
+      return fetch(auth.serverUrl + '/Genres?' + new URLSearchParams({
+        IncludeItemTypes:'Audio', Recursive:'true', Limit:'500'
+      }), {headers: headers()})
+      .then(function(r){ return r.json(); })
+      .then(function(d){ jmGenreCache = (d.Items||[]).map(function(g){ return g.Name; }); })
+      .catch(function(){});
+    },
+    libraryCount: function() {
+      return fetch(auth.serverUrl + '/Users/' + auth.userId + '/Items?' +
+        new URLSearchParams({IncludeItemTypes:'Audio', Recursive:'true', Limit:'1'}),
+        {headers: headers()})
+        .then(function(r){ return r.json(); })
+        .then(function(d){ return d.TotalRecordCount || 0; });
+    },
+    fetchTracksByGenres: function(genres) {
+      var expanded = expandGenres(genres);
+      var params = new URLSearchParams({IncludeItemTypes:'Audio', Recursive:'true', SortBy:'Random', Limit:'100', Fields:'Genres,MediaSources'});
+      if (expanded.length > 0) params.set('Genres', expanded.join('|'));
+      return fetch(auth.serverUrl + '/Users/' + auth.userId + '/Items?' + params, {headers: headers()})
+        .then(function(r){ return r.json(); })
+        .then(function(d){ return d.Items || []; });
+    },
+    fetchFallback: function() {
+      return fetch(auth.serverUrl + '/Users/' + auth.userId + '/Items?' +
+        new URLSearchParams({IncludeItemTypes:'Audio', Recursive:'true', SortBy:'Random', Limit:'30'}),
+        {headers: headers()})
+        .then(function(r){ return r.json(); })
+        .then(function(d){ return d.Items || []; });
+    },
+    streamUrl: function(item) {
+      return auth.serverUrl + '/Audio/' + item.Id + '/universal' +
+        '?UserId=' + auth.userId +
+        '&DeviceId=jm-android' +
+        '&MaxStreamingBitrate=140000000' +
+        '&Container=mp3,aac,m4a,flac,ogg,opus,webma,webm,wav' +
+        '&AudioCodec=aac,mp3,flac,opus,vorbis' +
+        '&TranscodingContainer=mp3' +
+        '&TranscodingProtocol=http' +
+        '&api_key=' + auth.accessToken;
+    },
+    trackLabel: function(item) {
+      var artist = (item.Artists && item.Artists[0]) || item.AlbumArtist || '';
+      return (artist ? artist + ' \u2014 ' : '') + (item.Name || '');
+    },
+    mediaMetadata: function(item) {
+      return {
+        title:  item.Name  || 'Musian',
+        artist: (item.Artists && item.Artists[0]) || item.AlbumArtist || '',
+        album:  item.Album || ''
+      };
+    }
+  };
+}
+
+function makeSubsonicBackend(auth) {
+  function ap() {
+    return '?u=' + encodeURIComponent(auth.username) +
+           '&p=' + encodeURIComponent(auth.password) +
+           '&v=1.16.1&c=Musian&f=json';
+  }
+  function shuffle(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+  }
+  return {
+    loadGenreCache: function() {
+      return fetch(auth.serverUrl + '/rest/getGenres.view' + ap())
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          var gs = (d['subsonic-response'] && d['subsonic-response'].genres && d['subsonic-response'].genres.genre) || [];
+          jmGenreCache = gs.map(function(g){ return g.value || g.name || String(g); });
+        })
+        .catch(function(){});
+    },
+    libraryCount: function() { return Promise.resolve(-1); },
+    fetchTracksByGenres: function(genres) {
+      var self = this;
+      var expanded = expandGenres(genres);
+      if (!expanded.length) return self.fetchFallback();
+      var seen = {};
+      var promises = expanded.map(function(genre) {
+        return fetch(auth.serverUrl + '/rest/getSongsByGenre.view' + ap() +
+          '&genre=' + encodeURIComponent(genre) + '&count=50')
+          .then(function(r){ return r.json(); })
+          .then(function(d){
+            return ((d['subsonic-response'] && d['subsonic-response'].songsByGenre && d['subsonic-response'].songsByGenre.song) || []);
+          })
+          .catch(function(){ return []; });
+      });
+      return Promise.all(promises).then(function(results) {
+        var merged = [];
+        results.forEach(function(songs) {
+          songs.forEach(function(s) {
+            if (!seen[s.id]) { seen[s.id] = true; merged.push(s); }
+          });
+        });
+        shuffle(merged);
+        return merged.slice(0, 100);
+      });
+    },
+    fetchFallback: function() {
+      return fetch(auth.serverUrl + '/rest/getRandomSongs.view' + ap() + '&size=30')
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          return ((d['subsonic-response'] && d['subsonic-response'].randomSongs && d['subsonic-response'].randomSongs.song) || []);
+        })
+        .catch(function(){ return []; });
+    },
+    streamUrl: function(item) {
+      return auth.serverUrl + '/rest/stream.view' + ap() + '&id=' + item.id;
+    },
+    trackLabel: function(item) {
+      return (item.artist ? item.artist + ' \u2014 ' : '') + (item.title || item.name || '');
+    },
+    mediaMetadata: function(item) {
+      return {
+        title:  item.title || item.name || 'Musian',
+        artist: item.artist || '',
+        album:  item.album  || ''
+      };
+    }
+  };
+}
+
+function makePlexBackend(auth) {
+  var plexGenreMap = {};
+  function ap() { return 'X-Plex-Token=' + auth.token; }
+  function jh() { return {'Accept':'application/json'}; }
+  function shuffle(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+  }
+  return {
+    loadGenreCache: function() {
+      return fetch(auth.serverUrl + '/library/sections/' + auth.sectionId + '/genre?type=10&' + ap(), {headers: jh()})
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          var dirs = (d.MediaContainer && d.MediaContainer.Directory) || [];
+          jmGenreCache = dirs.map(function(g){ return g.title; });
+          dirs.forEach(function(g){ plexGenreMap[g.title.toLowerCase()] = g.key || g.id || g.ratingKey; });
+        })
+        .catch(function(){});
+    },
+    libraryCount: function() {
+      return fetch(auth.serverUrl + '/library/sections/' + auth.sectionId + '/all?type=10&' + ap(), {headers: jh()})
+        .then(function(r){ return r.json(); })
+        .then(function(d){ return (d.MediaContainer && d.MediaContainer.totalSize) || 0; })
+        .catch(function(){ return 0; });
+    },
+    fetchTracksByGenres: function(genres) {
+      var self = this;
+      var expanded = expandGenres(genres);
+      var ids = [];
+      expanded.forEach(function(g) {
+        var key = plexGenreMap[g.toLowerCase()];
+        if (key !== undefined) ids.push(key);
+      });
+      if (!ids.length) return self.fetchFallback();
+      var seen = {};
+      var promises = ids.map(function(id) {
+        return fetch(auth.serverUrl + '/library/sections/' + auth.sectionId + '/all?type=10&genre=' + id + '&sort=random&' + ap(), {headers: jh()})
+          .then(function(r){ return r.json(); })
+          .then(function(d){ return (d.MediaContainer && d.MediaContainer.Metadata) || []; })
+          .catch(function(){ return []; });
+      });
+      return Promise.all(promises).then(function(results) {
+        var merged = [];
+        results.forEach(function(tracks) {
+          tracks.forEach(function(t) {
+            var key = t.ratingKey || t.key;
+            if (!seen[key]) { seen[key] = true; merged.push(t); }
+          });
+        });
+        shuffle(merged);
+        return merged.slice(0, 100);
+      });
+    },
+    fetchFallback: function() {
+      return fetch(auth.serverUrl + '/library/sections/' + auth.sectionId + '/all?type=10&sort=random&limit=30&' + ap(), {headers: jh()})
+        .then(function(r){ return r.json(); })
+        .then(function(d){ return (d.MediaContainer && d.MediaContainer.Metadata) || []; })
+        .catch(function(){ return []; });
+    },
+    streamUrl: function(item) {
+      var part = item.Media && item.Media[0] && item.Media[0].Part && item.Media[0].Part[0];
+      if (part && part.key) return auth.serverUrl + part.key + '?' + ap();
+      return auth.serverUrl + '/library/metadata/' + item.ratingKey + '/download?' + ap();
+    },
+    trackLabel: function(item) {
+      var artist = item.grandparentTitle || item.originalTitle || '';
+      return (artist ? artist + ' \u2014 ' : '') + (item.title || '');
+    },
+    mediaMetadata: function(item) {
+      return {
+        title:  item.title || 'Musian',
+        artist: item.grandparentTitle || item.originalTitle || '',
+        album:  item.parentTitle || ''
+      };
+    }
+  };
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+(function() {
+  var auth = null;
+  try { auth = JSON.parse(localStorage.getItem('jm_auth')); } catch(e) {}
+  if (!auth || !auth.type || !auth.serverUrl) { window.location.replace('index.html'); return; }
+  Backend = auth.type === 'subsonic' ? makeSubsonicBackend(auth)
+           : auth.type === 'plex'    ? makePlexBackend(auth)
+           :                           makeJellyfinBackend(auth);
+  Backend.loadGenreCache();
+})();
 
 document.getElementById('jmSignOutBtn').addEventListener('click', function() {
   localStorage.removeItem('jm_auth');
   window.location.replace('index.html');
 });
 
-// Library count on load
-fetch(JM.server + '/Users/' + JM.userId + '/Items?' +
-  new URLSearchParams({IncludeItemTypes:'Audio', Recursive:'true', Limit:'1'}),
-  {headers: JM.headers()})
-  .then(function(r) { return r.json(); })
-  .then(function(d) {
-    var n = d.TotalRecordCount;
-    if (!n) {
-      document.getElementById('jmStatus').textContent = 'Library has 0 audio tracks — check Jellyfin media libraries.';
-      document.getElementById('jmStatus').style.color = '#f88';
-    } else {
-      document.getElementById('jmStatus').textContent = n + ' audio tracks in library';
-    }
-  })
-  .catch(function() {
-    // If 401, token expired — back to login
-    document.getElementById('jmStatus').textContent = 'Could not reach server.';
+// Library count
+Backend.libraryCount().then(function(n) {
+  if (n < 0) {
+    document.getElementById('jmStatus').textContent = 'Connected';
+  } else if (!n) {
+    document.getElementById('jmStatus').textContent = 'Library has 0 audio tracks — check media libraries.';
     document.getElementById('jmStatus').style.color = '#f88';
-  });
+  } else {
+    document.getElementById('jmStatus').textContent = n + ' audio tracks in library';
+  }
+}).catch(function() {
+  document.getElementById('jmStatus').textContent = 'Could not reach server.';
+  document.getElementById('jmStatus').style.color = '#f88';
+});
 
 (function(){
 'use strict';
@@ -228,8 +426,8 @@ var MOODS = [
 var ERAS = [
   { name:'Classical',       genres:['Classical','Classical Music','Opera','Symphony','Baroque','Orchestral','Chamber Music','Film Score','Contemporary Classical Music'] },
   { name:'Jazz & Blues',    genres:['Jazz','Jazz Fusion','Jazz-Funk','Blues','Electric Blues','Soul','Rhythm And Blues'] },
-  { name:'Folk & Country',  genres:['Folk','Folk Rock','Country Music','Country Rock','Western','Music Of Ireland','Ballad','Ska','Reggae'] },
-  { name:'Pop & Soul',      genres:['Pop','Pop Music','Pop Rock','Funk','Funk Rock','Contemporary R&B','Music Of Latin America','Latin Rock','Rock En Español','Chicano Rock'] },
+  { name:'Folk & Country',  genres:['Folk','Folk Rock','Country Music','Country Rock','Western','Music Of Ireland','Ballad'] },
+  { name:'Pop & Soul',      genres:['Pop','Pop Music','Pop Rock','Funk','Funk Rock','Contemporary R&B','Ska','Reggae','Music Of Latin America','Latin Rock','Rock En Español','Chicano Rock'] },
   { name:'Rock',            genres:['Rock','Rock Music','Classic Rock','Psychedelic Rock','Space Rock','Rockabilly','Art Rock','Proto-Prog','Southern Rock','Indie Rock','Alternative Rock','Grunge','Experimental Rock','Garage Rock','Acid Rock'] },
   { name:'Hard Rock & Punk',genres:['Hard Rock','Blues Rock','Progressive Rock','Punk Rock','Post-Hardcore','Hardcore','Funk Metal'] },
   { name:'Rap',             genres:['Rap','Rap Rock','Hip-Hop','Hip Hop'] },
@@ -332,12 +530,8 @@ function jmAdvance(gen) {
 
 function jmUpdateMediaSession(item) {
   if (!('mediaSession' in navigator)) return;
-  var artist = (item.Artists && item.Artists[0]) || item.AlbumArtist || '';
-  navigator.mediaSession.metadata = new MediaMetadata({
-    title:  item.Name  || 'JellyMoods',
-    artist: artist,
-    album:  item.Album || '',
-  });
+  var meta = Backend.mediaMetadata(item);
+  navigator.mediaSession.metadata = new MediaMetadata(meta);
   navigator.mediaSession.setActionHandler('nexttrack', function() {
     jmPlayIdx++; jmPlayTrack(jmPlayIdx, jmGeneration);
   });
@@ -360,11 +554,9 @@ function jmPlayTrack(idx, gen) {
   }
   var item = jmPlaylist[idx];
   jmAudio.pause();
-  jmAudio.src = JM.streamUrl(item.Id);
+  jmAudio.src = Backend.streamUrl(item);
   jmAudio.play().catch(function() {});
-  var artist = (item.Artists && item.Artists[0]) || item.AlbumArtist || '';
-  document.getElementById('jmTrackName').textContent =
-    (artist ? artist + ' \u2014 ' : '') + item.Name;
+  document.getElementById('jmTrackName').textContent = Backend.trackLabel(item);
   document.getElementById('jmPlayer').style.display = 'block';
   setStatus('Playing ' + jmPlaylist.length + ' tracks \u266a');
   jmUpdateMediaSession(item);
@@ -473,7 +665,7 @@ function handleInteraction(clientX, clientY) {
       startPlayback(items);
     })
     .catch(function(e) {
-      console.error('[JellyMoods]', e);
+      console.error('[Musian]', e);
       setStatus('Could not fetch tracks.');
     });
 }
@@ -488,24 +680,9 @@ function setMoodName(t, col) { var el = document.getElementById('jmMoodName'); e
 function setMoodDesc(t)  { document.getElementById('jmMoodDesc').textContent = t; }
 function setTrackCount(n){ var el = document.getElementById('jmTrackCount'); el.style.display = n > 0 ? 'block' : 'none'; el.textContent = n > 0 ? n + ' tracks found' : ''; }
 
-// ── API ─────────────────────────────────────────────────────────────────────────
-function fetchTracksByGenres(genres) {
-  if (!JM.token || !JM.userId) return Promise.resolve([]);
-  var params = new URLSearchParams({IncludeItemTypes:'Audio', Recursive:'true', SortBy:'Random', Limit:'100', Fields:'Genres,MediaSources'});
-  if (genres.length > 0) params.set('Genres', genres.join('|'));
-  return fetch(JM.server + '/Users/' + JM.userId + '/Items?' + params, {headers: JM.headers()})
-    .then(function(r) { return r.json(); })
-    .then(function(d) { return d.Items || []; });
-}
-
-function fetchFallback() {
-  if (!JM.token || !JM.userId) return Promise.resolve([]);
-  return fetch(JM.server + '/Users/' + JM.userId + '/Items?' +
-    new URLSearchParams({IncludeItemTypes:'Audio', Recursive:'true', SortBy:'Random', Limit:'30'}),
-    {headers: JM.headers()})
-    .then(function(r) { return r.json(); })
-    .then(function(d) { return d.Items || []; });
-}
+// ── API (delegates to Backend) ────────────────────────────────────────────────
+function fetchTracksByGenres(genres) { return Backend.fetchTracksByGenres(genres); }
+function fetchFallback()             { return Backend.fetchFallback(); }
 
 })();
 </script>

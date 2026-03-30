@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace Jellyfin.Plugin.JellyMoods.Api;
 
 /// <summary>
-/// Serves the JellyMoods standalone app and sidebar injection script.
+/// Serves the Musian standalone app and sidebar injection script.
 /// </summary>
 [ApiController]
-[Route("JellyMoods")]
+[Route("Musian")]
 public class PageController : ControllerBase
 {
     private static string GetResource(string name)
@@ -24,7 +24,7 @@ public class PageController : ControllerBase
     }
 
     /// <summary>
-    /// Serves the standalone JellyMoods app page at /JellyMoods/app.
+    /// Serves the standalone Musian app page at /Musian/app.
     /// No Jellyfin dashboard shell — clicks work.
     /// </summary>
     [HttpGet("app")]
@@ -34,7 +34,7 @@ public class PageController : ControllerBase
         => Content(GetResource("app.html"), "text/html");
 
     /// <summary>
-    /// Serves the sidebar injection script at /JellyMoods/sidebar.js.
+    /// Serves the sidebar injection script at /Musian/sidebar.js.
     /// Loaded globally via config.json to add nav item for all users.
     /// </summary>
     [HttpGet("sidebar.js")]

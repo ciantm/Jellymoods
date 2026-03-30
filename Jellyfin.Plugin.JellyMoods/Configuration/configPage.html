@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>JellyMoods Settings</title>
+    <title>Musian Settings</title>
     <style>
         .jm-cfg { max-width: 600px; margin: 0 auto; padding: 24px 16px; }
         .jm-cfg h2 { font-weight: 300; letter-spacing: 0.06em; margin-bottom: 6px; }
@@ -71,7 +71,7 @@
 <div data-role="page" class="page" id="jellyMoodsConfigPage">
     <div data-role="content">
         <div class="jm-cfg">
-            <h2>🎵 JellyMoods Settings</h2>
+            <h2>🎵 Musian Settings</h2>
             <p class="subtitle">Map mood quadrants to genres in your Jellyfin library.</p>
 
             <!-- Quadrant genres -->
@@ -145,7 +145,7 @@
             document.getElementById('cfg_blendRadius').value  = cfg.BlendRadius        || 0.35;
             document.getElementById('cfg_shuffle').checked    = cfg.ShufflePlaylist !== false;
         } catch (e) {
-            console.warn('[JellyMoods] config load error', e);
+            console.warn('[Musian] config load error', e);
         }
     }
 
@@ -172,7 +172,7 @@
                 setTimeout(() => { msg.style.display = 'none'; }, 3000);
             }
         } catch (e) {
-            console.warn('[JellyMoods] config save error', e);
+            console.warn('[Musian] config save error', e);
         }
     }
 
