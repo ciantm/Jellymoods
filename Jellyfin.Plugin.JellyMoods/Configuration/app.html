@@ -100,7 +100,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
   </div>
 
   <a href="/web/index.html" style="margin-top:32px;color:#555;font-size:0.8em;text-decoration:none;">&#8592; Back to Jellyfin</a>
-  <div style="margin-top:12px;font-size:0.65em;color:#444;">v3.0.27.0</div>
+  <div style="margin-top:12px;font-size:0.65em;color:#444;">v3.0.28.0</div>
 </div>
 
 <script>
@@ -154,6 +154,24 @@ JM.init();
 if (!JM.token) {
   document.getElementById('jmStatus').textContent = 'Not signed in — please log into Jellyfin first.';
   document.getElementById('jmStatus').style.color = '#f88';
+} else {
+  fetch(JM.server + '/Users/' + JM.userId + '/Items?' +
+    new URLSearchParams({IncludeItemTypes:'Audio', Recursive:'true', Limit:'1'}),
+    {headers: JM.headers()})
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var n = d.TotalRecordCount;
+      if (n === 0 || n === undefined) {
+        document.getElementById('jmStatus').textContent = 'Library has 0 audio tracks — check Jellyfin media libraries.';
+        document.getElementById('jmStatus').style.color = '#f88';
+      } else {
+        document.getElementById('jmStatus').textContent = n + ' audio tracks in library';
+      }
+    })
+    .catch(function() {
+      document.getElementById('jmStatus').textContent = 'Could not reach Jellyfin API.';
+      document.getElementById('jmStatus').style.color = '#f88';
+    });
 }
 
 (function(){
@@ -415,9 +433,7 @@ function handleInteraction(clientX, clientY) {
 
   setMoodName(nearest.map(function(m) { return m.name; }).join(' + '), nearest1.col);
   setMoodDesc(nearest1.desc);
-  setStatus('Searching your library\u2026');
   setTrackCount(0);
-
 
   // Combine genres from the 3 nearest moods
   var genreMap = {};
@@ -427,6 +443,8 @@ function handleInteraction(clientX, clientY) {
   // If a genre zone is selected, use it as the search filter (overrides mood genres)
   var moodGenres = genres;
   if (jmEraGenres !== null) genres = jmEraGenres;
+
+  setStatus('Searching: ' + genres.join(', '));
 
   fetchTracksByGenres(genres)
     .then(function(items) {
