@@ -98,14 +98,14 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
   </div>
 
   <div id="jmPlayer" style="display:none;">
-    <audio id="jmAudio"></audio>
+    <audio id="jmAudio" playsinline></audio>
     <div id="jmTrackName"></div>
     <button id="jmSkipBtn" class="jm-btn">&#9197; Skip</button>
     <button id="jmStopBtn" class="jm-btn">&#9209; Stop</button>
   </div>
 
   <a href="/web/index.html" style="margin-top:32px;color:#555;font-size:0.8em;text-decoration:none;">&#8592; Back to Jellyfin</a>
-  <div style="margin-top:12px;font-size:0.65em;color:#444;">v3.0.36.0</div>
+  <div style="margin-top:12px;font-size:0.65em;color:#444;">v3.0.37.0</div>
 </div>
 
 <script>
@@ -360,6 +360,15 @@ function jmUpdateMediaSession(item) {
     artist: artist,
     album:  item.Album || '',
   });
+  navigator.mediaSession.playbackState = 'playing';
+  navigator.mediaSession.setActionHandler('play', function() {
+    jmAudio.play().catch(function() {});
+    navigator.mediaSession.playbackState = 'playing';
+  });
+  navigator.mediaSession.setActionHandler('pause', function() {
+    jmAudio.pause();
+    navigator.mediaSession.playbackState = 'paused';
+  });
   navigator.mediaSession.setActionHandler('nexttrack', function() {
     jmPlayIdx++; jmPlayTrack(jmPlayIdx, jmGeneration);
   });
@@ -372,12 +381,19 @@ function jmUpdateMediaSession(item) {
   });
 }
 
+// Resume audio if the browser paused it when the screen locked
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden && jmPlaylist.length > 0 && jmAudio.paused && !jmAudio.ended) {
+    jmAudio.play().catch(function() {});
+  }
+});
+
 function jmPlayTrack(idx, gen) {
   if (gen !== jmGeneration) return;
   if (idx >= jmPlaylist.length) {
     setStatus('Playlist ended — tap the wheel to play again.');
     document.getElementById('jmPlayer').style.display = 'none';
-    if ('mediaSession' in navigator) navigator.mediaSession.metadata = null;
+    if ('mediaSession' in navigator) { navigator.mediaSession.metadata = null; navigator.mediaSession.playbackState = 'none'; }
     return;
   }
   var item = jmPlaylist[idx];
@@ -414,7 +430,7 @@ document.getElementById('jmStopBtn').addEventListener('click', function() {
   jmPlaylist = [];
   document.getElementById('jmPlayer').style.display = 'none';
   setStatus(''); setTrackCount(0); setMoodName('', ''); setMoodDesc('');
-  if ('mediaSession' in navigator) navigator.mediaSession.metadata = null;
+  if ('mediaSession' in navigator) { navigator.mediaSession.metadata = null; navigator.mediaSession.playbackState = 'none'; }
   // Clear mood and era state
   jmMoodGenres = null;
   jmEraGenres = null;
