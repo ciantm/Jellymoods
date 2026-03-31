@@ -100,6 +100,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
 
   <div style="text-align:center;margin-top:36px;min-height:80px;">
     <div id="jmMoodName" style="font-size:1.4em;font-weight:300;letter-spacing:0.08em;color:#fff;min-height:1.6em;"></div>
+    <div id="jmUpNext" style="display:none;margin-top:6px;font-size:0.75em;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
   </div>
 
   <div style="margin-top:16px;text-align:center;">
@@ -121,7 +122,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
   </div>
 
   <a href="/web/index.html" style="margin-top:32px;color:#555;font-size:0.8em;text-decoration:none;">&#8592; Back to Jellyfin</a>
-  <div style="margin-top:12px;font-size:0.65em;color:#444;">v3.0.43.0</div>
+  <div style="margin-top:12px;font-size:0.65em;color:#444;">v3.0.44.0</div>
 </div>
 
 <script>
@@ -415,6 +416,7 @@ function jmPlayTrack(idx, gen) {
     document.getElementById('jmSearchWrap').style.display = 'block';
     document.getElementById('jmTrackName').style.display = 'none';
     document.getElementById('jmControls').style.display = 'none';
+    document.getElementById('jmUpNext').style.display = 'none';
     if ('mediaSession' in navigator) { navigator.mediaSession.metadata = null; navigator.mediaSession.playbackState = 'none'; }
     return;
   }
@@ -440,6 +442,15 @@ function jmPlayTrack(idx, gen) {
   document.getElementById('jmSearchWrap').style.display = 'none';
   document.getElementById('jmTrackName').style.display = 'block';
   document.getElementById('jmControls').style.display = 'block';
+  var next = jmPlaylist[idx + 1];
+  var upNextEl = document.getElementById('jmUpNext');
+  if (next) {
+    var na = (next.Artists && next.Artists[0]) || next.AlbumArtist || '';
+    upNextEl.textContent = 'Up next \u00b7 ' + (na ? na + ' \u2014 ' : '') + next.Name;
+    upNextEl.style.display = 'block';
+  } else {
+    upNextEl.style.display = 'none';
+  }
   setStatus('Playing \u266a');
   jmUpdateMediaSession(item);
 }
@@ -467,6 +478,7 @@ document.getElementById('jmStopBtn').addEventListener('click', function() {
   document.getElementById('jmSearchWrap').style.display = 'block';
   document.getElementById('jmTrackName').style.display = 'none';
   document.getElementById('jmControls').style.display = 'none';
+  document.getElementById('jmUpNext').style.display = 'none';
   setStatus(''); setTrackCount(0); setMoodName('', '');
   if ('mediaSession' in navigator) { navigator.mediaSession.metadata = null; navigator.mediaSession.playbackState = 'none'; }
   // Clear mood and era state
