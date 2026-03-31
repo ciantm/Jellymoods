@@ -38,7 +38,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
 <body>
 <div id="jmApp">
   <h2 style="font-size:1.6em;font-weight:300;letter-spacing:0.06em;margin:0 0 6px;">&#127925; Musian</h2>
-  <p style="font-size:0.85em;color:#888;margin:0 0 32px;">Choose a genre, tap your mood to play</p>
+  <p style="font-size:0.85em;color:#888;margin:0 0 32px;">Listen differently, choose your mood, play your music</p>
 
   <div id="jmWheelWrap" style="position:relative;width:min(80vw,420px);height:min(80vw,420px);margin:0 auto 8px;">
     <svg id="jmSvgWheel" viewBox="0 0 400 400" width="100%" height="100%"
@@ -121,7 +121,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
   </div>
 
   <a href="/web/index.html" style="margin-top:32px;color:#555;font-size:0.8em;text-decoration:none;">&#8592; Back to Jellyfin</a>
-  <div style="margin-top:12px;font-size:0.65em;color:#444;">v3.0.41.0</div>
+  <div style="margin-top:12px;font-size:0.65em;color:#444;">v3.0.42.0</div>
 </div>
 
 <script>
@@ -353,8 +353,9 @@ var jmPlayIdx    = 0;
 var jmGeneration = 0;
 var jmMoodGenres = null; // set when a mood is tapped, null until then
 var jmAudio      = document.getElementById('jmAudio');
-var jmRefetchFn  = null; // zero-arg fn returning Promise of next batch
-var jmPlayedIds  = [];   // ids of tracks already played (for dedup)
+var jmRefetchFn  = null;  // zero-arg fn returning Promise of next batch
+var jmPlayedIds  = [];    // ids of tracks already played (for dedup)
+var jmFetching   = false; // prevents concurrent background fetches
 
 function jmShowPrompt(visible) {
   var p = document.getElementById('jmWheelPrompt');
@@ -418,14 +419,16 @@ function jmPlayTrack(idx, gen) {
   }
   var item = jmPlaylist[idx];
   jmPlayedIds.push(item.Id);
-  // Prefetch next batch when penultimate track starts
-  if (jmRefetchFn && idx === jmPlaylist.length - 2) {
+  // Prefetch next batch when 2 or fewer tracks remain (including current)
+  if (jmRefetchFn && !jmFetching && jmPlaylist.length - idx <= 2) {
+    jmFetching = true;
     var _gen = gen;
     jmRefetchFn().then(function(more) {
+      jmFetching = false;
       if (_gen !== jmGeneration) return;
       more = more.filter(function(t) { return jmPlayedIds.indexOf(t.Id) === -1; });
       if (more.length) jmPlaylist = jmPlaylist.concat(more);
-    }).catch(function() {});
+    }).catch(function() { jmFetching = false; });
   }
   jmAudio.pause();
   jmAudio.src = JM.streamUrl(item.Id);
@@ -482,7 +485,7 @@ function startPlayback(items) {
   jmGeneration++;
   jmAudio.pause();
   jmPlaylist = items; jmPlayIdx = 0;
-  jmPlayedIds = [];
+  jmPlayedIds = []; jmFetching = false;
   attachPlayerListeners(jmGeneration);
   jmPlayTrack(0, jmGeneration);
 }
