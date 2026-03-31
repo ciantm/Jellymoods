@@ -22,6 +22,17 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
 .jm-btn { padding:10px 28px; border:none; border-radius:24px; font-size:0.9em; font-weight:700; cursor:pointer; color:#fff; }
 #jmSkipBtn { background:rgba(255,255,255,0.12); margin-right:8px; }
 #jmStopBtn { background:rgba(255,255,255,0.08); }
+#jmSearch { width:100%; background:#1e1e1e; border:1px solid #333; border-radius:20px;
+            color:#fff; font-size:0.85em; padding:9px 16px; outline:none; }
+#jmSearch:focus { border-color:#555; }
+#jmSuggest { position:absolute; top:calc(100% + 4px); left:0; right:0;
+             background:#1e1e1e; border:1px solid #333; border-radius:10px;
+             overflow:hidden; z-index:10; display:none; }
+.jm-sug-item { padding:10px 14px; cursor:pointer; border-bottom:1px solid #222; text-align:left; }
+.jm-sug-item:last-child { border-bottom:none; }
+.jm-sug-item:hover, .jm-sug-item:active { background:#2a2a2a; }
+.jm-sug-title { font-size:0.85em; color:#fff; }
+.jm-sug-artist { font-size:0.75em; color:#888; margin-top:2px; }
 </style>
 </head>
 <body>
@@ -97,15 +108,21 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
     <div id="jmTrackCount" style="display:none;margin-top:4px;font-size:0.78em;color:#aaa;"></div>
   </div>
 
-  <div id="jmPlayer" style="display:none;">
+  <div id="jmPlayer" style="margin-top:16px;text-align:center;width:100%;max-width:420px;">
     <audio id="jmAudio" playsinline></audio>
-    <div id="jmTrackName"></div>
-    <button id="jmSkipBtn" class="jm-btn">&#9197; Skip</button>
-    <button id="jmStopBtn" class="jm-btn">&#9209; Stop</button>
+    <div id="jmSearchWrap" style="position:relative;margin-bottom:10px;">
+      <input id="jmSearch" type="search" placeholder="Search song…" autocomplete="off" autocapitalize="none" spellcheck="false"/>
+      <div id="jmSuggest"></div>
+    </div>
+    <div id="jmTrackName" style="display:none;"></div>
+    <div id="jmControls" style="display:none;">
+      <button id="jmSkipBtn" class="jm-btn">&#9197; Skip</button>
+      <button id="jmStopBtn" class="jm-btn">&#9209; Stop</button>
+    </div>
   </div>
 
   <a href="/web/index.html" style="margin-top:32px;color:#555;font-size:0.8em;text-decoration:none;">&#8592; Back to Jellyfin</a>
-  <div style="margin-top:12px;font-size:0.65em;color:#444;">v3.0.37.0</div>
+  <div style="margin-top:12px;font-size:0.65em;color:#444;">v3.0.38.0</div>
 </div>
 
 <script>
@@ -392,7 +409,8 @@ function jmPlayTrack(idx, gen) {
   if (gen !== jmGeneration) return;
   if (idx >= jmPlaylist.length) {
     setStatus('Playlist ended — tap the wheel to play again.');
-    document.getElementById('jmPlayer').style.display = 'none';
+    document.getElementById('jmTrackName').style.display = 'none';
+    document.getElementById('jmControls').style.display = 'none';
     if ('mediaSession' in navigator) { navigator.mediaSession.metadata = null; navigator.mediaSession.playbackState = 'none'; }
     return;
   }
@@ -403,7 +421,8 @@ function jmPlayTrack(idx, gen) {
   var artist = (item.Artists && item.Artists[0]) || item.AlbumArtist || '';
   document.getElementById('jmTrackName').textContent =
     (artist ? artist + ' \u2014 ' : '') + item.Name;
-  document.getElementById('jmPlayer').style.display = 'block';
+  document.getElementById('jmTrackName').style.display = 'block';
+  document.getElementById('jmControls').style.display = 'block';
   setStatus('Playing ' + jmPlaylist.length + ' tracks \u266a');
   jmUpdateMediaSession(item);
 }
@@ -428,7 +447,8 @@ document.getElementById('jmStopBtn').addEventListener('click', function() {
   jmGeneration++;
   jmAudio.pause(); jmAudio.src = '';
   jmPlaylist = [];
-  document.getElementById('jmPlayer').style.display = 'none';
+  document.getElementById('jmTrackName').style.display = 'none';
+  document.getElementById('jmControls').style.display = 'none';
   setStatus(''); setTrackCount(0); setMoodName('', ''); setMoodDesc('');
   if ('mediaSession' in navigator) { navigator.mediaSession.metadata = null; navigator.mediaSession.playbackState = 'none'; }
   // Clear mood and era state
@@ -565,6 +585,121 @@ function fetchFallback() {
     .then(function(r) { return r.json(); })
     .then(function(d) { return d.Items || []; });
 }
+
+// ── Search ────────────────────────────────────────────────────────────────────
+function findMoodForGenres(genres) {
+  var norm = (genres || []).map(function(g) { return g.toLowerCase().replace(/[^a-z0-9]/g, ''); });
+  var best = MOODS[0], bestScore = -1;
+  MOODS.forEach(function(mood) {
+    var score = 0;
+    mood.genres.forEach(function(mg) {
+      var mn = mg.toLowerCase().replace(/[^a-z0-9]/g, '');
+      norm.forEach(function(n) { if (n.indexOf(mn) !== -1 || mn.indexOf(n) !== -1) score++; });
+    });
+    if (score > bestScore) { bestScore = score; best = mood; }
+  });
+  return best;
+}
+
+function placeDotForMood(mood) {
+  var wrap = document.getElementById('jmWheelWrap');
+  var rect = wrap.getBoundingClientRect();
+  var old = wrap.querySelectorAll('.jm-dot');
+  for (var i = 0; i < old.length; i++) wrap.removeChild(old[i]);
+  var dot = document.createElement('div');
+  dot.className = 'jm-dot';
+  dot.style.cssText = 'position:absolute;width:22px;height:22px;border-radius:50%;' +
+    'transform:translate(-50%,-50%);pointer-events:none;' +
+    'box-shadow:0 0 0 3px rgba(0,0,0,0.5),0 0 14px rgba(255,255,255,0.8);';
+  dot.style.background = mood.col;
+  dot.style.left = (mood.x * rect.width) + 'px';
+  dot.style.top  = ((1 - mood.y) * rect.height) + 'px';
+  wrap.appendChild(dot);
+}
+
+function highlightGenreBarForGenres(genres) {
+  var norm = (genres || []).map(function(g) { return g.toLowerCase().replace(/[^a-z0-9]/g, ''); });
+  var bestIdx = 0, bestScore = -1;
+  ERAS.forEach(function(era, i) {
+    var score = 0;
+    era.genres.forEach(function(eg) {
+      var en = eg.toLowerCase().replace(/[^a-z0-9]/g, '');
+      norm.forEach(function(n) { if (n.indexOf(en) !== -1 || en.indexOf(n) !== -1) score++; });
+    });
+    if (score > bestScore) { bestScore = score; bestIdx = i; }
+  });
+  var n = ERAS.length;
+  var hl = document.getElementById('jmEraHighlight');
+  hl.style.left  = (bestIdx / n * 100) + '%';
+  hl.style.width = (1 / n * 100) + '%';
+  hl.style.display = 'block';
+  ['jmEraLabelsTop', 'jmEraLabels'].forEach(function(id) {
+    document.getElementById(id).querySelectorAll('span').forEach(function(s, i) {
+      s.style.color      = i === bestIdx ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.3)';
+      s.style.fontWeight = i === bestIdx ? '700' : '400';
+    });
+  });
+}
+
+(function() {
+  var input   = document.getElementById('jmSearch');
+  var suggest = document.getElementById('jmSuggest');
+  var timer   = null;
+
+  input.addEventListener('input', function() {
+    clearTimeout(timer);
+    var q = input.value.trim();
+    if (!q) { suggest.style.display = 'none'; return; }
+    timer = setTimeout(function() { doSearch(q); }, 300);
+  });
+
+  input.addEventListener('blur', function() {
+    setTimeout(function() { suggest.style.display = 'none'; }, 150);
+  });
+
+  function doSearch(q) {
+    if (!JM.token || !JM.userId) return;
+    fetch(JM.server + '/Users/' + JM.userId + '/Items?' + new URLSearchParams({
+      SearchTerm: q, IncludeItemTypes: 'Audio', Recursive: 'true',
+      Limit: '8', Fields: 'Genres,Artists,AlbumArtist'
+    }), {headers: JM.headers()})
+    .then(function(r) { return r.json(); })
+    .then(function(d) { renderSuggestions(d.Items || []); })
+    .catch(function() {});
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function renderSuggestions(items) {
+    suggest.innerHTML = '';
+    if (!items.length) { suggest.style.display = 'none'; return; }
+    items.forEach(function(item) {
+      var div = document.createElement('div');
+      div.className = 'jm-sug-item';
+      var artist = (item.Artists && item.Artists[0]) || item.AlbumArtist || '';
+      div.innerHTML = '<div class="jm-sug-title">' + escHtml(item.Name) + '</div>' +
+        (artist ? '<div class="jm-sug-artist">' + escHtml(artist) + '</div>' : '');
+      div.addEventListener('mousedown', function() { selectSong(item); });
+      suggest.appendChild(div);
+    });
+    suggest.style.display = 'block';
+  }
+
+  function selectSong(item) {
+    suggest.style.display = 'none';
+    input.value = '';
+    var genres = item.Genres || [];
+    var mood = findMoodForGenres(genres);
+    startPlayback([item]);
+    placeDotForMood(mood);
+    setMoodName(mood.name, mood.col);
+    setMoodDesc(mood.desc);
+    highlightGenreBarForGenres(genres);
+    jmShowPrompt(false);
+  }
+})();
 
 })();
 </script>
