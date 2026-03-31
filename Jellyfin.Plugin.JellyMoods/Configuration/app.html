@@ -100,7 +100,6 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
 
   <div style="text-align:center;margin-top:36px;min-height:80px;">
     <div id="jmMoodName" style="font-size:1.4em;font-weight:300;letter-spacing:0.08em;color:#fff;min-height:1.6em;"></div>
-    <div id="jmMoodDesc" style="font-size:0.82em;color:#999;margin-top:6px;min-height:1.2em;"></div>
   </div>
 
   <div style="margin-top:16px;text-align:center;">
@@ -122,7 +121,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
   </div>
 
   <a href="/web/index.html" style="margin-top:32px;color:#555;font-size:0.8em;text-decoration:none;">&#8592; Back to Jellyfin</a>
-  <div style="margin-top:12px;font-size:0.65em;color:#444;">v3.0.39.0</div>
+  <div style="margin-top:12px;font-size:0.65em;color:#444;">v3.0.40.0</div>
 </div>
 
 <script>
@@ -449,7 +448,7 @@ document.getElementById('jmStopBtn').addEventListener('click', function() {
   jmPlaylist = [];
   document.getElementById('jmTrackName').style.display = 'none';
   document.getElementById('jmControls').style.display = 'none';
-  setStatus(''); setTrackCount(0); setMoodName('', ''); setMoodDesc('');
+  setStatus(''); setTrackCount(0); setMoodName('', '');
   if ('mediaSession' in navigator) { navigator.mediaSession.metadata = null; navigator.mediaSession.playbackState = 'none'; }
   // Clear mood and era state
   jmMoodGenres = null;
@@ -509,7 +508,6 @@ function handleInteraction(clientX, clientY) {
 
   jmShowPrompt(false);
   setMoodName(nearest.map(function(m) { return m.name; }).join(' + '), nearest1.col);
-  setMoodDesc(nearest1.desc);
   setTrackCount(0);
 
   // Combine genres from the 3 nearest moods
@@ -550,7 +548,6 @@ svg.addEventListener('touchend', function(e) { e.preventDefault(); var t = e.cha
 // ── UI helpers ────────────────────────────────────────────────────────────
 function setStatus(t)    { document.getElementById('jmStatus').textContent = t; }
 function setMoodName(t, col) { var el = document.getElementById('jmMoodName'); el.textContent = t; el.style.color = col || '#fff'; }
-function setMoodDesc(t)  { document.getElementById('jmMoodDesc').textContent = t; }
 function setTrackCount(n){ var el = document.getElementById('jmTrackCount'); el.style.display = n > 0 ? 'block' : 'none'; el.textContent = n > 0 ? n + ' tracks found' : ''; }
 
 // ── API ───────────────────────────────────────────────────────────────────
@@ -695,7 +692,6 @@ function highlightGenreBarForGenres(genres) {
     startPlayback([item]);
     placeDotForMood(mood);
     setMoodName(mood.name, mood.col);
-    setMoodDesc(mood.desc);
     highlightGenreBarForGenres(genres);
     jmShowPrompt(false);
     // Fetch more tracks in the same mood and append so playback continues
