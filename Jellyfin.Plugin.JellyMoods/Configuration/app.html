@@ -62,6 +62,11 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
           <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
         </radialGradient>
         <clipPath id="circClip"><circle cx="200" cy="200" r="196"/></clipPath>
+        <!-- Arc paths for curved edge labels (r=178, each spanning 70° centred on quadrant diagonal) -->
+        <path id="jmArcTR" d="M 231,25 A 178,178 0 0,1 375,169"/>
+        <path id="jmArcTL" d="M 25,169 A 178,178 0 0,1 169,25"/>
+        <path id="jmArcBL" d="M 169,375 A 178,178 0 0,1 25,231"/>
+        <path id="jmArcBR" d="M 375,231 A 178,178 0 0,1 231,375"/>
       </defs>
       <circle cx="200" cy="200" r="196" fill="#000000"/>
       <g clip-path="url(#circClip)">
@@ -74,19 +79,16 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
       <line x1="200" y1="4" x2="200" y2="396" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="4,5"/>
       <line x1="4" y1="200" x2="396" y2="200" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="4,5"/>
       <circle cx="200" cy="200" r="196" fill="transparent"/>
+      <!-- Curved edge labels -->
+      <text font-size="11.5" font-weight="700" letter-spacing="2" fill="#ffe066" font-family="sans-serif" pointer-events="none" paint-order="stroke" stroke="#000" stroke-width="4" stroke-linejoin="round" opacity="0.85"><textPath href="#jmArcTR" startOffset="50%" text-anchor="middle">HAPPY · EXCITED</textPath></text>
+      <text font-size="11.5" font-weight="700" letter-spacing="2" fill="#ff7070" font-family="sans-serif" pointer-events="none" paint-order="stroke" stroke="#000" stroke-width="4" stroke-linejoin="round" opacity="0.85"><textPath href="#jmArcTL" startOffset="50%" text-anchor="middle">ANGRY · TENSE</textPath></text>
+      <text font-size="11.5" font-weight="700" letter-spacing="2" fill="#7ba3ff" font-family="sans-serif" pointer-events="none" paint-order="stroke" stroke="#000" stroke-width="4" stroke-linejoin="round" opacity="0.85"><textPath href="#jmArcBL" startOffset="50%" text-anchor="middle">SAD · LONELY</textPath></text>
+      <text font-size="11.5" font-weight="700" letter-spacing="2" fill="#5ee8cc" font-family="sans-serif" pointer-events="none" paint-order="stroke" stroke="#000" stroke-width="4" stroke-linejoin="round" opacity="0.85"><textPath href="#jmArcBR" startOffset="50%" text-anchor="middle">CALM · SERENE</textPath></text>
     </svg>
     <div id="jmWheelPrompt">
       <div style="font-size:1.1em;font-weight:300;letter-spacing:0.1em;color:rgba(255,255,255,0.75);text-shadow:0 0 24px #000,0 0 8px #000;">Tap your mood</div>
       <div style="font-size:0.72em;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.38);margin-top:6px;text-shadow:0 0 12px #000;">to play</div>
     </div>
-    <span style="position:absolute;top:18px;left:50%;transform:translateX(-50%);font-size:0.62em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.35);pointer-events:none;text-shadow:0 0 8px #000;">Active</span>
-    <span style="position:absolute;bottom:18px;left:50%;transform:translateX(-50%);font-size:0.62em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.35);pointer-events:none;text-shadow:0 0 8px #000;">Passive</span>
-    <span style="position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:0.62em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.35);pointer-events:none;text-shadow:0 0 8px #000;">Negative</span>
-    <span style="position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:0.62em;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.35);pointer-events:none;text-shadow:0 0 8px #000;">Positive</span>
-    <span style="position:absolute;top:32px;left:32px;font-size:0.65em;font-weight:700;color:#ff7070;line-height:1.3;pointer-events:none;text-shadow:0 0 8px #000;">Angry<br>Tense</span>
-    <span style="position:absolute;top:32px;right:32px;font-size:0.65em;font-weight:700;color:#ffe066;line-height:1.3;text-align:right;pointer-events:none;text-shadow:0 0 8px #000;">Happy<br>Excited</span>
-    <span style="position:absolute;bottom:32px;left:32px;font-size:0.65em;font-weight:700;color:#7ba3ff;line-height:1.3;pointer-events:none;text-shadow:0 0 8px #000;">Sad<br>Lonely</span>
-    <span style="position:absolute;bottom:32px;right:32px;font-size:0.65em;font-weight:700;color:#5ee8cc;line-height:1.3;text-align:right;pointer-events:none;text-shadow:0 0 8px #000;">Calm<br>Serene</span>
   </div>
 
   <div id="jmEraArea">
