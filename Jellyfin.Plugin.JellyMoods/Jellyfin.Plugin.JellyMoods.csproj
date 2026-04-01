@@ -15,8 +15,8 @@
     <Product>Musian</Product>
     <Description>Play music from your Jellyfin library based on mood selection.</Description>
     <Copyright>MIT</Copyright>
-    <RepositoryUrl>https://github.com/ciantm/Jellymoods</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/ciantm/Jellymoods</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ciantm/Musian</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/ciantm/Musian</PackageProjectUrl>
   </PropertyGroup>
 
   <!-- Required for ControllerBase, ApiController etc. -->
