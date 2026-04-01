@@ -10,6 +10,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
 #jmApp { display:flex; flex-direction:column; align-items:center; padding:24px 16px 48px; width:100%; }
 #jmEraArea { width:100%; max-width:min(80vw,420px); margin-top:18px; }
 #jmWheelPrompt { position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:2;transition:opacity 0.4s; }
+#jmMoodName { position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:72%;text-align:center;pointer-events:none;z-index:3;transition:opacity 0.4s;font-size:1.2em;font-weight:300;letter-spacing:0.08em;text-shadow:0 0 32px #000,0 0 12px #000;opacity:0; }
 #jmEraWrap { position:relative; width:100%; touch-action:none; cursor:pointer; }
 #jmEraBar { width:100%; height:44px; border-radius:10px; background:linear-gradient(to right,#c8b860,#1a5070,#6a7840,#b040a0,#c06020,#b02010,#806000,#200010); }
 #jmEraHighlight { position:absolute; top:0; height:44px; border-radius:10px; background:rgba(255,255,255,0.18); border:2px solid rgba(255,255,255,0.7); pointer-events:none; transition:left 0.15s,width 0.15s; display:none; }
@@ -36,7 +37,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
 </head>
 <body>
 <div id="jmApp">
-  <h2 style="font-size:1.6em;font-weight:300;letter-spacing:0.06em;margin:0 0 32px;display:flex;align-items:baseline;gap:10px;"><span>&#127925; Musian</span><span style="font-size:0.38em;color:#444;">v3.0.48.0</span></h2>
+  <h2 style="font-size:1.6em;font-weight:300;letter-spacing:0.06em;margin:0 0 32px;display:flex;align-items:baseline;gap:10px;"><span>&#127925; Musian</span><span style="font-size:0.38em;color:#444;">v3.0.49.0</span></h2>
 
   <div id="jmWheelWrap" style="position:relative;width:min(80vw,420px);height:min(80vw,420px);margin:0 auto 8px;">
     <svg id="jmSvgWheel" viewBox="0 0 400 400" width="100%" height="100%"
@@ -83,6 +84,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
       <text font-size="11.5" font-weight="700" letter-spacing="2" fill="#7ba3ff" font-family="sans-serif" pointer-events="none" paint-order="stroke" stroke="#000" stroke-width="4" stroke-linejoin="round" opacity="0.85"><textPath href="#jmArcBL" startOffset="50%" text-anchor="middle">SAD · LONELY</textPath></text>
       <text font-size="11.5" font-weight="700" letter-spacing="2" fill="#5ee8cc" font-family="sans-serif" pointer-events="none" paint-order="stroke" stroke="#000" stroke-width="4" stroke-linejoin="round" opacity="0.85"><textPath href="#jmArcBR" startOffset="50%" text-anchor="middle">CALM · SERENE</textPath></text>
     </svg>
+    <div id="jmMoodName"></div>
     <div id="jmWheelPrompt">
       <div style="font-size:1.1em;font-weight:300;letter-spacing:0.1em;color:rgba(255,255,255,0.75);text-shadow:0 0 24px #000,0 0 8px #000;">Feel your music</div>
       <div style="font-size:0.72em;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.38);margin-top:6px;text-shadow:0 0 12px #000;">Tap to play</div>
@@ -98,10 +100,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
     <div id="jmEraLabels"></div>
   </div>
 
-  <div style="text-align:center;margin-top:36px;min-height:80px;">
-    <div id="jmMoodName" style="font-size:1.4em;font-weight:300;letter-spacing:0.08em;color:#fff;min-height:1.6em;"></div>
-    <div id="jmUpNext" style="display:none;margin-top:6px;font-size:0.75em;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
-  </div>
+  <div id="jmUpNext" style="display:none;margin-top:10px;font-size:0.75em;color:#555;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:min(80vw,420px);"></div>
 
   <div style="text-align:center;">
     <div id="jmStatus" style="font-size:0.8em;color:#777;min-height:1.2em;"></div>
@@ -517,7 +516,7 @@ function handleInteraction(clientX, clientY) {
   var valence = (dx/r)*0.5 + 0.5;
   var arousal  = (-dy/r)*0.5 + 0.5;
 
-  var nearest = getNearestMoods(valence, arousal, 3);
+  var nearest = getNearestMoods(valence, arousal, 4);
   var nearest1 = nearest[0];
 
   // Show dot
@@ -578,7 +577,7 @@ svg.addEventListener('touchend', function(e) { e.preventDefault(); var t = e.cha
 
 // ── UI helpers ────────────────────────────────────────────────────────────
 function setStatus(t)    { document.getElementById('jmStatus').textContent = t; }
-function setMoodName(t, col) { var el = document.getElementById('jmMoodName'); el.textContent = t; el.style.color = col || '#fff'; }
+function setMoodName(t, col) { var el = document.getElementById('jmMoodName'); el.textContent = t; el.style.color = col || '#fff'; el.style.opacity = t ? '1' : '0'; }
 function setTrackCount(n){ var el = document.getElementById('jmTrackCount'); el.style.display = n > 0 ? 'block' : 'none'; el.textContent = n > 0 ? n + ' tracks found' : ''; }
 
 // ── API ───────────────────────────────────────────────────────────────────
