@@ -420,14 +420,26 @@ function jmUpdatePersistentBar(item) {
     var artist = (item.Artists && item.Artists[0]) || item.AlbumArtist || '';
     lbl.textContent = (artist ? artist + ' \u2014 ' : '') + (item.Name || '');
   }
-  bar.style.display = 'flex';
-  btn.innerHTML = jmAudio.paused ? '&#9654;' : '&#9646;&#9646;';
+  // Only show when screen is locked/hidden
+  if (document.hidden && jmPlaylist.length > 0) {
+    bar.style.display = 'flex';
+    btn.innerHTML = jmAudio.paused ? '&#9654;' : '&#9646;&#9646;';
+  }
 }
 
 function jmHidePersistentBar() {
   var bar = document.getElementById('jmPersistentPlay');
   if (bar) bar.style.display = 'none';
 }
+
+// Show/hide persistent bar on screen lock/unlock
+document.addEventListener('visibilitychange', function() {
+  if (document.hidden && jmPlaylist.length > 0) {
+    jmUpdatePersistentBar(null);
+  } else {
+    jmHidePersistentBar();
+  }
+});
 
 function jmPlayTrack(idx, gen) {
   if (gen !== jmGeneration) return;
