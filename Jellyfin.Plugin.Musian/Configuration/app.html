@@ -20,8 +20,10 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
 #jmEraLabelsTop span, #jmEraLabels span { flex:1; text-align:center; font-size:0.58em; font-weight:600; letter-spacing:0.03em; text-transform:uppercase; color:rgba(255,255,255,0.5); }
 #jmPlayer { margin-top:16px; text-align:center; width:100%; max-width:420px; }
 .jm-btn { padding:10px 28px; border:none; border-radius:24px; font-size:0.9em; font-weight:700; cursor:pointer; color:#fff; }
-#jmSkipBtn { background:rgba(255,255,255,0.12); margin-right:8px; }
-#jmStopBtn { background:rgba(255,255,255,0.08); }
+#jmBackBtn  { background:rgba(255,255,255,0.12); margin-right:8px; }
+#jmPauseBtn { background:rgba(255,255,255,0.12); margin-right:8px; }
+#jmSkipBtn  { background:rgba(255,255,255,0.12); margin-right:8px; }
+#jmStopBtn  { background:rgba(255,255,255,0.08); }
 #jmSearch { width:100%; background:#1e1e1e; border:1px solid #333; border-radius:20px;
             color:#fff; font-size:0.85em; padding:9px 16px; outline:none; }
 #jmSearch:focus { border-color:#555; }
@@ -37,7 +39,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
 </head>
 <body>
 <div id="jmApp">
-  <h2 style="font-size:1.6em;font-weight:300;letter-spacing:0.06em;margin:0 0 32px;display:flex;align-items:baseline;gap:10px;"><span>&#127925; Musian</span><span style="font-size:0.38em;color:#444;">v3.0.57.0</span></h2>
+  <h2 style="font-size:1.6em;font-weight:300;letter-spacing:0.06em;margin:0 0 32px;display:flex;align-items:baseline;gap:10px;"><span>&#127925; Musian</span><span style="font-size:0.38em;color:#444;">v3.0.58.0</span></h2>
 
   <div id="jmWheelWrap" style="position:relative;width:min(80vw,420px);height:min(80vw,420px);margin:0 auto 8px;">
     <svg id="jmSvgWheel" viewBox="0 0 400 400" width="100%" height="100%"
@@ -113,8 +115,10 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
       <div id="jmSuggest"></div>
     </div>
     <div id="jmControls" style="display:none;margin-top:16px;">
-      <button id="jmSkipBtn" class="jm-btn">&#9197; Skip</button>
-      <button id="jmStopBtn" class="jm-btn">&#9209; Stop</button>
+      <button id="jmBackBtn"  class="jm-btn">&#9198; Back</button>
+      <button id="jmPauseBtn" class="jm-btn">&#9646;&#9646; Pause</button>
+      <button id="jmSkipBtn"  class="jm-btn">&#9197; Skip</button>
+      <button id="jmStopBtn"  class="jm-btn">&#9209; Stop</button>
     </div>
   </div>
   <div id="jmPersistentPlay" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:#fff;padding:8px 16px;border-radius:24px;display:none;align-items:center;gap:10px;z-index:100;max-width:90vw;">
@@ -302,14 +306,46 @@ var jmMoodTags  = null; // tags from last mood tap, for era-zone re-search
     labelsEl.appendChild(bot);
   });
 
+  var eraLastIdx = -1, eraTapCount = 0, eraTapTimer = null;
+
   function handleEraInteraction(clientX) {
     var rect = wrap.getBoundingClientRect();
     var rel  = (clientX - rect.left) / rect.width;
     var idx  = Math.floor(rel * n);
     idx = Math.max(0, Math.min(n - 1, idx));
 
-    var lo = idx;
-    var hi = idx;
+    // Track tap count on same zone
+    if (idx === eraLastIdx) { eraTapCount++; } else { eraLastIdx = idx; eraTapCount = 1; }
+    clearTimeout(eraTapTimer);
+    eraTapTimer = setTimeout(function() { eraLastIdx = -1; eraTapCount = 0; }, 500);
+
+    // Triple tap — clear filter entirely
+    if (eraTapCount >= 3) {
+      jmEraGenres = null;
+      highlight.style.display = 'none';
+      [labelsTopEl, labelsEl].forEach(function(row) {
+        row.querySelectorAll('span').forEach(function(s) { s.style.color = ''; s.style.fontWeight = ''; });
+      });
+      if (jmMoodGenres !== null) {
+        setStatus('Searching\u2026'); setTrackCount(0);
+        var moodT = jmMoodTags || [];
+        fetchTracksByTags(moodT)
+          .then(function(i) { return i.length ? i : fetchTracksByGenres(jmMoodGenres); })
+          .then(function(i) { return i.length ? i : fetchFallback(); })
+          .then(function(i) { setTrackCount(i.length); if (!i.length) { setStatus('No tracks found.'); return; } startPlayback(i); })
+          .catch(function() { setStatus('Could not fetch tracks.'); });
+      }
+      return;
+    }
+
+    var lo, hi;
+    if (eraTapCount === 2) {
+      lo = Math.max(0, idx - 1);
+      hi = Math.min(n - 1, idx + 1);
+    } else {
+      lo = idx;
+      hi = idx;
+    }
     var selected = ERAS.slice(lo, hi + 1);
 
     // Position highlight over selected range
@@ -511,6 +547,13 @@ function attachPlayerListeners(gen) {
   });
 }
 
+document.getElementById('jmBackBtn').addEventListener('click', function() {
+  if (jmPlayIdx > 0) { jmPlayIdx--; jmPlayTrack(jmPlayIdx, jmGeneration); }
+});
+document.getElementById('jmPauseBtn').addEventListener('click', function() {
+  if (jmAudio.paused) { jmAudio.play().catch(function() {}); }
+  else { jmAudio.pause(); }
+});
 document.getElementById('jmSkipBtn').addEventListener('click', function() {
   jmPlayIdx++;
   jmPlayTrack(jmPlayIdx, jmGeneration);
@@ -550,8 +593,14 @@ document.getElementById('jmPersistentSkipBtn').addEventListener('click', functio
   jmPlayIdx++;
   jmPlayTrack(jmPlayIdx, jmGeneration);
 });
-jmAudio.addEventListener('play',  function() { jmUpdatePersistentBar(null); });
-jmAudio.addEventListener('pause', function() { jmUpdatePersistentBar(null); });
+jmAudio.addEventListener('play',  function() {
+  document.getElementById('jmPauseBtn').innerHTML = '&#9646;&#9646; Pause';
+  jmUpdatePersistentBar(null);
+});
+jmAudio.addEventListener('pause', function() {
+  document.getElementById('jmPauseBtn').innerHTML = '&#9654; Resume';
+  jmUpdatePersistentBar(null);
+});
 
 function startPlayback(items) {
   jmGeneration++;
@@ -572,6 +621,7 @@ function getNearestMoods(vx, vy, count) {
 }
 
 function handleInteraction(clientX, clientY) {
+  setMoodName('', '');
   var wrap = document.getElementById('jmWheelWrap');
   var rect = wrap.getBoundingClientRect();
   var cx = rect.left + rect.width/2, cy = rect.top + rect.height/2, r = rect.width/2;
@@ -612,7 +662,8 @@ function handleInteraction(clientX, clientY) {
     (function(mood, elx, ely, d) {
       var el = document.createElement('div');
       el.className = 'jm-mlabel';
-      el.textContent = mood.name;
+      var _tags = (mood.tags && mood.tags.length) ? mood.tags : [mood.name];
+      el.textContent = _tags[Math.floor(Math.random() * _tags.length)];
       el.style.cssText = 'position:absolute;pointer-events:none;font-size:0.68em;font-weight:600;' +
         'letter-spacing:0.1em;text-transform:uppercase;color:' + mood.col + ';' +
         'text-shadow:0 0 12px #000,0 0 4px #000;transform:translate(-50%,-50%);' +
