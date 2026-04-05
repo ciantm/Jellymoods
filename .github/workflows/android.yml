@@ -15,6 +15,16 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Capacitor sync
+        working-directory: android-app
+        run: |
+          npm install
+          npx cap sync android
+
       - name: Build debug APK
         working-directory: android-app/android
         run: |
