@@ -39,7 +39,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
 </head>
 <body>
 <div id="jmApp">
-  <h2 style="font-size:1.6em;font-weight:300;letter-spacing:0.06em;margin:0 0 32px;display:flex;align-items:baseline;gap:10px;"><span>&#127925; Musian</span><span style="font-size:0.38em;color:#444;">v3.0.65.0</span></h2>
+  <h2 style="font-size:1.6em;font-weight:300;letter-spacing:0.06em;margin:0 0 32px;display:flex;align-items:baseline;gap:10px;"><span>&#127925; Musian</span><span style="font-size:0.38em;color:#444;">v3.0.66.0</span></h2>
 
   <div id="jmWheelWrap" style="position:relative;width:min(80vw,420px);height:min(80vw,420px);margin:0 auto 8px;">
     <svg id="jmSvgWheel" viewBox="0 0 400 400" width="100%" height="100%"
@@ -268,6 +268,18 @@ var MOODS = [
   { name:'Excited',     desc:'Thrilling, exhilarating, stimulating',  x:0.88, y:0.90, col:'#ffea20',
     tags:['excitement','exciting','exhilarating','thrill','ardor','stimulating','thrilling','titillating'],
     genres:['Pop','Punk','Alternative Rock','Rap'] },
+  { name:'Restless',   desc:'Tense, charged, unsettled, on edge',     x:0.48, y:0.80, col:'#ff9040',
+    tags:['restless','tense','unsettled','charged','edgy','alert','agitated','stirred'],
+    genres:['Rock','Alternative Rock','Electronic','Indie Rock'] },
+  { name:'Frustrated', desc:'Irritable, bitter, discontent, sullen',  x:0.35, y:0.68, col:'#c05030',
+    tags:['frustrated','irritable','impatient','discontent','disgruntled','bitter','sullen'],
+    genres:['Rock','Grunge','Alternative Rock','Punk'] },
+  { name:'Tender',     desc:'Warm, affectionate, gentle, sweet',      x:0.78, y:0.45, col:'#f0a0b8',
+    tags:['tender','warm','affectionate','sweet','gentle','loving','nurturing','intimate'],
+    genres:['Jazz','Soul','Folk','Pop','Ballad'] },
+  { name:'Nostalgic',  desc:'Bittersweet, longing, sentimental',      x:0.42, y:0.18, col:'#8090c8',
+    tags:['nostalgic','bittersweet','longing','yearning','sentimental','reminiscent','poignant','aching'],
+    genres:['Folk','Country','Soul','Indie Rock','Singer-Songwriter'] },
 ];
 
 // ── Per-tag valence/arousal coordinates ─────────────────────────────────
@@ -275,7 +287,7 @@ var MOODS = [
 var TAG_COORDS = {
   'aggressive':[0.07,0.96],'aggression':[0.08,0.94],
   'angry':[0.10,0.89],'anger':[0.09,0.90],'choleric':[0.08,0.87],'fury':[0.07,0.92],
-  'outraged':[0.12,0.86],'rage':[0.06,0.93],'angry music':[0.11,0.88],
+  'outraged':[0.12,0.86],'rage':[0.07,0.93],'angry music':[0.11,0.88],
   'anxious':[0.22,0.79],'angst':[0.18,0.76],'anxiety':[0.21,0.80],
   'jumpy':[0.25,0.82],'nervous':[0.23,0.77],'angsty':[0.19,0.75],
   'pessimistic':[0.17,0.28],'pessimism':[0.16,0.27],'cynical':[0.20,0.30],
@@ -284,13 +296,13 @@ var TAG_COORDS = {
   'reflective':[0.30,0.40],'broody':[0.26,0.44],'pensive':[0.29,0.45],
   'pondering':[0.31,0.39],'wistful':[0.33,0.36],
   'grief':[0.09,0.20],'heartbreak':[0.08,0.22],'mournful':[0.11,0.17],
-  'sorrow':[0.10,0.16],'sorry':[0.15,0.20],'doleful':[0.12,0.15],
+  'sorrow':[0.11,0.16],'sorry':[0.15,0.20],'doleful':[0.12,0.15],
   'heartache':[0.09,0.21],'heartbreaking':[0.08,0.19],'heartsick':[0.10,0.18],
-  'lachrymose':[0.11,0.14],'mourning':[0.12,0.16],'plaintive':[0.13,0.17],
+  'lachrymose':[0.12,0.14],'mourning':[0.12,0.16],'plaintive':[0.13,0.17],
   'regret':[0.16,0.22],'sorrowful':[0.10,0.15],
   'depressed':[0.11,0.10],'blue':[0.16,0.12],'dark':[0.10,0.09],
-  'depressive':[0.11,0.08],'dreary':[0.13,0.11],'gloom':[0.12,0.09],
-  'darkness':[0.09,0.08],'depress':[0.11,0.10],'depression':[0.10,0.09],
+  'depressive':[0.11,0.08],'dreary':[0.13,0.11],'gloom':[0.13,0.09],
+  'darkness':[0.10,0.08],'depress':[0.10,0.10],'depression':[0.11,0.09],
   'depressing':[0.12,0.08],'gloomy':[0.13,0.10],
   'sad':[0.19,0.22],'sadness':[0.18,0.21],'unhappy':[0.20,0.24],
   'melancholic':[0.22,0.20],'melancholy':[0.21,0.19],
@@ -304,25 +316,37 @@ var TAG_COORDS = {
   'comforting':[0.73,0.16],'content':[0.80,0.18],'cool down':[0.76,0.10],
   'mellow music':[0.71,0.14],'mellow rock':[0.68,0.18],
   'peace of mind':[0.82,0.12],'quietness':[0.77,0.07],'relaxation':[0.80,0.09],
-  'serenity':[0.83,0.08],'solace':[0.70,0.16],'soothe':[0.76,0.11],
-  'soothing':[0.77,0.10],'still':[0.80,0.06],'tranquil':[0.82,0.09],
+  'serenity':[0.83,0.08],'solace':[0.70,0.16],'soothe':[0.75,0.11],
+  'soothing':[0.78,0.10],'still':[0.80,0.06],'tranquil':[0.82,0.09],
   'tranquility':[0.83,0.07],
   'hopeful':[0.65,0.55],'desire':[0.62,0.52],'hope':[0.66,0.54],
   'confident':[0.72,0.66],'encouraging':[0.70,0.63],'encouragement':[0.69,0.62],
   'optimism':[0.73,0.65],'optimistic':[0.74,0.66],
   'happy':[0.85,0.68],'happiness':[0.86,0.69],'happy songs':[0.84,0.67],
-  'happy music':[0.84,0.68],'glad':[0.83,0.65],
+  'happy music':[0.83,0.68],'glad':[0.83,0.65],
   'cheerful':[0.90,0.75],'cheer up':[0.88,0.73],'festive':[0.89,0.78],
   'jolly':[0.92,0.76],'jovial':[0.91,0.74],'merry':[0.91,0.77],
   'cheer':[0.89,0.74],'cheering':[0.88,0.76],'cheery':[0.90,0.74],
   'get happy':[0.87,0.75],'rejoice':[0.90,0.78],
-  'songs that are cheerful':[0.89,0.73],'sunny':[0.91,0.72],
+  'songs that are cheerful':[0.89,0.72],'sunny':[0.91,0.72],
   'upbeat':[0.80,0.82],'gleeful':[0.84,0.80],'high spirits':[0.82,0.83],
   'zest':[0.81,0.85],'enthusiastic':[0.79,0.84],'buoyancy':[0.83,0.81],
   'elation':[0.85,0.82],
-  'excitement':[0.88,0.91],'exciting':[0.87,0.90],'exhilarating':[0.89,0.92],
+  'excitement':[0.88,0.91],'exciting':[0.87,0.90],'exhilarating':[0.90,0.92],
   'thrill':[0.87,0.93],'ardor':[0.85,0.89],'stimulating':[0.86,0.88],
-  'thrilling':[0.88,0.93],'titillating':[0.86,0.91]
+  'thrilling':[0.88,0.93],'titillating':[0.86,0.91],
+  'restless':[0.47,0.82],'tense':[0.45,0.80],'unsettled':[0.50,0.81],
+  'charged':[0.52,0.83],'edgy':[0.44,0.79],'alert':[0.53,0.78],
+  'agitated':[0.43,0.84],'stirred':[0.51,0.77],
+  'frustrated':[0.35,0.70],'irritable':[0.33,0.68],'impatient':[0.37,0.72],
+  'discontent':[0.32,0.66],'disgruntled':[0.34,0.65],'bitter':[0.30,0.62],
+  'sullen':[0.31,0.64],
+  'tender':[0.78,0.46],'warm':[0.76,0.44],'affectionate':[0.80,0.48],
+  'sweet':[0.75,0.42],'gentle':[0.74,0.40],'loving':[0.82,0.46],
+  'nurturing':[0.79,0.43],'intimate':[0.81,0.44],
+  'nostalgic':[0.42,0.20],'bittersweet':[0.40,0.18],'longing':[0.38,0.22],
+  'yearning':[0.39,0.16],'sentimental':[0.45,0.19],'reminiscent':[0.44,0.17],
+  'poignant':[0.41,0.21],'aching':[0.37,0.19]
 };
 
 // Shirley-Chiu area-preserving square→disc mapping
@@ -737,12 +761,30 @@ function handleInteraction(clientX, clientY) {
   jmShowPrompt(false);
   setTrackCount(0);
 
-  // Labels at per-tag positions, clipped to disc
+  // Labels at per-tag positions — spread to avoid overlap, furthest fades in first
   clearMoodLabels();
-  nearTags.forEach(function(t, idx) {
+  var n = nearTags.length;
+  // Compute display positions and spread apart (min 0.15 of disc width)
+  var labelPts = nearTags.map(function(t) {
     var dp = squareToDisc(t.x, t.y);
-    var lx = dp[0] * rect.width;
-    var ly = dp[1] * rect.height;
+    return [dp[0] * rect.width, dp[1] * rect.height];
+  });
+  var minD = rect.width * 0.15;
+  for (var iter = 0; iter < 20; iter++) {
+    for (var a = 0; a < labelPts.length; a++) {
+      for (var b = a+1; b < labelPts.length; b++) {
+        var ddx = labelPts[b][0]-labelPts[a][0], ddy = labelPts[b][1]-labelPts[a][1];
+        var dist = Math.sqrt(ddx*ddx+ddy*ddy);
+        if (dist < minD && dist > 0) {
+          var push = (minD-dist)/2+1;
+          var nx = ddx/dist*push, ny = ddy/dist*push;
+          labelPts[a][0]-=nx; labelPts[a][1]-=ny;
+          labelPts[b][0]+=nx; labelPts[b][1]+=ny;
+        }
+      }
+    }
+  }
+  nearTags.forEach(function(t, idx) {
     var el = document.createElement('div');
     el.className = 'jm-mlabel';
     el.textContent = t.tag;
@@ -750,11 +792,12 @@ function handleInteraction(clientX, clientY) {
       'letter-spacing:0.1em;text-transform:uppercase;color:' + t.mood.col + ';' +
       'text-shadow:0 0 12px #000,0 0 4px #000;transform:translate(-50%,-50%);' +
       'transition:opacity 0.6s;opacity:0;white-space:nowrap;';
-    el.style.left = lx + 'px';
-    el.style.top  = ly + 'px';
+    el.style.left = labelPts[idx][0] + 'px';
+    el.style.top  = labelPts[idx][1] + 'px';
     wrap.appendChild(el);
     jmMoodLabels.push(el);
-    setTimeout(function() { el.style.opacity = '0.85'; }, 30 + idx * 400);
+    // furthest (idx=n-1) fades in first, closest (idx=0) arrives last
+    setTimeout(function() { el.style.opacity = '0.85'; }, 30 + (n-1-idx) * 400);
   });
 
   // Search: tags from 15 nearest; genres from parent moods of 3 nearest
@@ -795,9 +838,12 @@ svg.addEventListener('touchend', function(e) { e.preventDefault(); var t = e.cha
 
 // ── UI helpers ────────────────────────────────────────────────────────────
 function clearMoodLabels() {
+  var n = jmMoodLabels.length;
+  // furthest (idx=n-1) fades out first, closest (idx=0) last
   jmMoodLabels.forEach(function(el, idx) {
-    setTimeout(function() { el.style.opacity = '0'; }, idx * 200);
-    setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, idx * 200 + 600);
+    var delay = (n-1-idx) * 200;
+    setTimeout(function() { el.style.opacity = '0'; }, delay);
+    setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, delay + 600);
   });
   jmMoodLabels = [];
 }
