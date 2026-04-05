@@ -39,7 +39,7 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
 </head>
 <body>
 <div id="jmApp">
-  <h2 style="font-size:1.6em;font-weight:300;letter-spacing:0.06em;margin:0 0 32px;display:flex;align-items:baseline;gap:10px;"><span>&#127925; Musian</span><span style="font-size:0.38em;color:#444;">v3.0.63.0</span></h2>
+  <h2 style="font-size:1.6em;font-weight:300;letter-spacing:0.06em;margin:0 0 32px;display:flex;align-items:baseline;gap:10px;"><span>&#127925; Musian</span><span style="font-size:0.38em;color:#444;">v3.0.64.0</span></h2>
 
   <div id="jmWheelWrap" style="position:relative;width:min(80vw,420px);height:min(80vw,420px);margin:0 auto 8px;">
     <svg id="jmSvgWheel" viewBox="0 0 400 400" width="100%" height="100%"
@@ -269,6 +269,82 @@ var MOODS = [
     tags:['excitement','exciting','exhilarating','thrill','ardor','stimulating','thrilling','titillating'],
     genres:['Pop','Punk','Alternative Rock','Rap'] },
 ];
+
+// ── Per-tag valence/arousal coordinates ─────────────────────────────────
+// Used for distance calculation (may be outside disc) and display (clipped to disc)
+var TAG_COORDS = {
+  'aggressive':[0.07,0.96],'aggression':[0.08,0.94],
+  'angry':[0.10,0.89],'anger':[0.09,0.90],'choleric':[0.08,0.87],'fury':[0.07,0.92],
+  'outraged':[0.12,0.86],'rage':[0.06,0.93],'angry music':[0.11,0.88],
+  'anxious':[0.22,0.79],'angst':[0.18,0.76],'anxiety':[0.21,0.80],
+  'jumpy':[0.25,0.82],'nervous':[0.23,0.77],'angsty':[0.19,0.75],
+  'pessimistic':[0.17,0.28],'pessimism':[0.16,0.27],'cynical':[0.20,0.30],
+  'weltschmerz':[0.14,0.24],'cynical/sarcastic':[0.21,0.32],
+  'brooding':[0.27,0.43],'contemplative':[0.32,0.38],'meditative':[0.35,0.32],
+  'reflective':[0.30,0.40],'broody':[0.26,0.44],'pensive':[0.29,0.45],
+  'pondering':[0.31,0.39],'wistful':[0.33,0.36],
+  'grief':[0.09,0.20],'heartbreak':[0.08,0.22],'mournful':[0.11,0.17],
+  'sorrow':[0.10,0.16],'sorry':[0.15,0.20],'doleful':[0.12,0.15],
+  'heartache':[0.09,0.21],'heartbreaking':[0.08,0.19],'heartsick':[0.10,0.18],
+  'lachrymose':[0.11,0.14],'mourning':[0.12,0.16],'plaintive':[0.13,0.17],
+  'regret':[0.16,0.22],'sorrowful':[0.10,0.15],
+  'depressed':[0.11,0.10],'blue':[0.16,0.12],'dark':[0.10,0.09],
+  'depressive':[0.11,0.08],'dreary':[0.13,0.11],'gloom':[0.12,0.09],
+  'darkness':[0.09,0.08],'depress':[0.11,0.10],'depression':[0.10,0.09],
+  'depressing':[0.12,0.08],'gloomy':[0.13,0.10],
+  'sad':[0.19,0.22],'sadness':[0.18,0.21],'unhappy':[0.20,0.24],
+  'melancholic':[0.22,0.20],'melancholy':[0.21,0.19],
+  'feeling sad':[0.19,0.23],'sad song':[0.20,0.22],
+  'earnest':[0.55,0.43],'heartfelt':[0.53,0.40],
+  'dreamy':[0.60,0.20],
+  'romantic':[0.72,0.30],'romantic music':[0.73,0.29],
+  'calm':[0.78,0.12],'comfort':[0.74,0.14],'quiet':[0.76,0.08],
+  'serene':[0.82,0.10],'mellow':[0.72,0.15],'chill out':[0.75,0.12],
+  'calm down':[0.77,0.11],'calming':[0.79,0.10],'chillout':[0.74,0.13],
+  'comforting':[0.73,0.16],'content':[0.80,0.18],'cool down':[0.76,0.10],
+  'mellow music':[0.71,0.14],'mellow rock':[0.68,0.18],
+  'peace of mind':[0.82,0.12],'quietness':[0.77,0.07],'relaxation':[0.80,0.09],
+  'serenity':[0.83,0.08],'solace':[0.70,0.16],'soothe':[0.76,0.11],
+  'soothing':[0.77,0.10],'still':[0.80,0.06],'tranquil':[0.82,0.09],
+  'tranquility':[0.83,0.07],
+  'hopeful':[0.65,0.55],'desire':[0.62,0.52],'hope':[0.66,0.54],
+  'confident':[0.72,0.66],'encouraging':[0.70,0.63],'encouragement':[0.69,0.62],
+  'optimism':[0.73,0.65],'optimistic':[0.74,0.66],
+  'happy':[0.85,0.68],'happiness':[0.86,0.69],'happy songs':[0.84,0.67],
+  'happy music':[0.84,0.68],'glad':[0.83,0.65],
+  'cheerful':[0.90,0.75],'cheer up':[0.88,0.73],'festive':[0.89,0.78],
+  'jolly':[0.92,0.76],'jovial':[0.91,0.74],'merry':[0.91,0.77],
+  'cheer':[0.89,0.74],'cheering':[0.88,0.76],'cheery':[0.90,0.74],
+  'get happy':[0.87,0.75],'rejoice':[0.90,0.78],
+  'songs that are cheerful':[0.89,0.73],'sunny':[0.91,0.72],
+  'upbeat':[0.80,0.82],'gleeful':[0.84,0.80],'high spirits':[0.82,0.83],
+  'zest':[0.81,0.85],'enthusiastic':[0.79,0.84],'buoyancy':[0.83,0.81],
+  'elation':[0.85,0.82],
+  'excitement':[0.88,0.91],'exciting':[0.87,0.90],'exhilarating':[0.89,0.92],
+  'thrill':[0.87,0.93],'ardor':[0.85,0.89],'stimulating':[0.86,0.88],
+  'thrilling':[0.88,0.93],'titillating':[0.86,0.91]
+};
+
+function clipToDisc(x, y) {
+  var dx = x - 0.5, dy = y - 0.5;
+  var dist = Math.sqrt(dx*dx + dy*dy);
+  var max_r = 0.45; // 90% of disc radius
+  if (dist > max_r) { var s = max_r / dist; x = 0.5 + dx*s; y = 0.5 + dy*s; }
+  return [x, y];
+}
+
+function getNearestTags(vx, vy, count) {
+  var all = [];
+  MOODS.forEach(function(m) {
+    (m.tags || []).forEach(function(t) {
+      var c = TAG_COORDS[t] || [m.x, m.y];
+      var dx = vx - c[0], dy = vy - c[1];
+      all.push({tag:t, mood:m, x:c[0], y:c[1], dist:dx*dx+dy*dy});
+    });
+  });
+  all.sort(function(a,b){ return a.dist - b.dist; });
+  return all.slice(0, count);
+}
 
 // ── Eras ─────────────────────────────────────────────────────────────────
 var ERAS = [
@@ -633,10 +709,12 @@ function handleInteraction(clientX, clientY) {
   var valence = (dx/r)*0.5 + 0.5;
   var arousal  = (-dy/r)*0.5 + 0.5;
 
-  var nearest = getNearestMoods(valence, arousal, 3);
-  var nearest1 = nearest[0];
+  // 3 nearest tags for labels; 15 nearest for search pool
+  var nearTags   = getNearestTags(valence, arousal, 3);
+  var searchPool = getNearestTags(valence, arousal, 15);
+  var nearest1   = nearTags[0];
 
-  // Show dot
+  // Show dot coloured by closest tag's parent mood
   var old = wrap.querySelectorAll('.jm-dot');
   for (var i = 0; i < old.length; i++) wrap.removeChild(old[i]);
   var dot = document.createElement('div');
@@ -644,7 +722,7 @@ function handleInteraction(clientX, clientY) {
   dot.style.cssText = 'position:absolute;width:22px;height:22px;border-radius:50%;' +
     'transform:translate(-50%,-50%);pointer-events:none;' +
     'box-shadow:0 0 0 3px rgba(0,0,0,0.5),0 0 14px rgba(255,255,255,0.8);';
-  dot.style.background = nearest1.col;
+  dot.style.background = nearest1.mood.col;
   dot.style.left = (clientX - rect.left) + 'px';
   dot.style.top  = (clientY - rect.top)  + 'px';
   wrap.appendChild(dot);
@@ -652,17 +730,17 @@ function handleInteraction(clientX, clientY) {
   jmShowPrompt(false);
   setTrackCount(0);
 
-  // Persistent mood labels at their x-y coordinates on the disc
+  // Labels at per-tag positions, clipped to disc
   clearMoodLabels();
-  nearest.forEach(function(m, idx) {
-    var lx = m.x * rect.width;
-    var ly = (1 - m.y) * rect.height;
+  nearTags.forEach(function(t, idx) {
+    var clipped = clipToDisc(t.x, t.y);
+    var lx = clipped[0] * rect.width;
+    var ly = (1 - clipped[1]) * rect.height;
     var el = document.createElement('div');
     el.className = 'jm-mlabel';
-    var _tags = (m.tags && m.tags.length) ? m.tags : [m.name];
-    el.textContent = _tags[Math.floor(Math.random() * _tags.length)];
+    el.textContent = t.tag;
     el.style.cssText = 'position:absolute;pointer-events:none;font-size:0.68em;font-weight:600;' +
-      'letter-spacing:0.1em;text-transform:uppercase;color:' + m.col + ';' +
+      'letter-spacing:0.1em;text-transform:uppercase;color:' + t.mood.col + ';' +
       'text-shadow:0 0 12px #000,0 0 4px #000;transform:translate(-50%,-50%);' +
       'transition:opacity 0.6s;opacity:0;white-space:nowrap;';
     el.style.left = lx + 'px';
@@ -672,11 +750,11 @@ function handleInteraction(clientX, clientY) {
     setTimeout(function() { el.style.opacity = '0.85'; }, 30 + idx * 400);
   });
 
-  // Collect tags and genres from the 3 nearest moods
+  // Search: tags from 15 nearest; genres from parent moods of 3 nearest
   var tagMap = {}, genreMap = {};
-  nearest.forEach(function(m) {
-    (m.tags   || []).forEach(function(t) { tagMap[t]   = true; });
-    (m.genres || []).forEach(function(g) { genreMap[g] = true; });
+  searchPool.forEach(function(t) { tagMap[t.tag] = true; });
+  nearTags.forEach(function(t) {
+    (t.mood.genres || []).forEach(function(g) { genreMap[g] = true; });
   });
   var moodTags   = Object.keys(tagMap);
   var moodGenres = Object.keys(genreMap);
