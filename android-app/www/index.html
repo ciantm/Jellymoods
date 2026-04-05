@@ -48,7 +48,7 @@ button#jmPlexBtn:active { opacity:0.85; }
 
   <div id="jmServerUrlWrap">
     <label>Server URL</label>
-    <input id="jmServer" type="url" placeholder="http://192.168.1.10:8096"
+    <input id="jmServer" type="url" placeholder="http://192.168.1.10:8096" value="http://"
            autocomplete="off" autocapitalize="none" spellcheck="false"/>
     <div id="jmDetectMsg"></div>
   </div>
@@ -63,7 +63,10 @@ button#jmPlexBtn:active { opacity:0.85; }
     <label>Username</label>
     <input id="jmUser" type="text" autocomplete="username" autocapitalize="none"/>
     <label>Password</label>
-    <input id="jmPass" type="password" autocomplete="current-password"/>
+    <div style="position:relative;margin-bottom:20px;">
+      <input id="jmPass" type="password" autocomplete="current-password" style="margin-bottom:0;padding-right:44px;width:100%;"/>
+      <button type="button" id="jmTogglePass" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#666;cursor:pointer;font-size:1.1em;padding:4px;">&#128065;</button>
+    </div>
     <button id="jmSignIn">Sign In</button>
   </div>
 
@@ -115,6 +118,11 @@ button#jmPlexBtn:active { opacity:0.85; }
     document.getElementById('jmError').textContent = '';
   }
 
+  // Select all on focus if only the default http:// is present
+  document.getElementById('jmServer').addEventListener('focus', function() {
+    if (this.value === 'http://') this.select();
+  });
+
   // Auto-detect server type on URL blur
   document.getElementById('jmServer').addEventListener('blur', function() {
     var url = this.value.replace(/\/$/, '').trim();
@@ -154,6 +162,12 @@ button#jmPlexBtn:active { opacity:0.85; }
       }
     });
   }
+
+  // Password show/hide toggle
+  document.getElementById('jmTogglePass').addEventListener('click', function() {
+    var inp = document.getElementById('jmPass');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  });
 
   // Jellyfin / Subsonic sign in
   document.getElementById('jmSignIn').addEventListener('click', signIn);

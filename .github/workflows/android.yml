@@ -19,6 +19,9 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Sync web assets
+        run: cp Jellyfin.Plugin.Musian/Configuration/app.html android-app/www/app.html
+
       - name: Capacitor sync
         working-directory: android-app
         run: |
