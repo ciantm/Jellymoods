@@ -1,4 +1,4 @@
-package com.jellymoods.app;
+package com.musian.app;
 
 import com.getcapacitor.BridgeActivity;
 
