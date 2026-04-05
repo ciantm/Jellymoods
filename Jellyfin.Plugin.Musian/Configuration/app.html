@@ -4,6 +4,8 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Musian</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap" rel="stylesheet"/>
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
 body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; overflow-x:hidden; }
@@ -35,11 +37,32 @@ body { background:#111; color:#fff; font-family:sans-serif; min-height:100vh; ov
 .jm-sug-item:hover, .jm-sug-item:active { background:#2a2a2a; }
 .jm-sug-title { font-size:0.85em; color:#fff; }
 .jm-sug-artist { font-size:0.75em; color:#888; margin-top:2px; }
+#jmSplash { position:fixed; inset:0; background:#111; display:flex; align-items:center; justify-content:center; z-index:999; transition:opacity 0.8s ease; }
+#jmSplash.fade { opacity:0; pointer-events:none; }
 </style>
 </head>
 <body>
+<div id="jmSplash">
+  <svg viewBox="0 0 400 400" width="260" height="260" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 40px rgba(0,0,0,0.9));">
+    <defs>
+      <radialGradient id="spR" cx="0%" cy="0%" r="100%" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="#ff1a00" stop-opacity="0.65"/><stop offset="65%" stop-color="#ff1a00" stop-opacity="0"/></radialGradient>
+      <radialGradient id="spY" cx="100%" cy="0%" r="100%" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="#ffe800" stop-opacity="0.55"/><stop offset="65%" stop-color="#ffe800" stop-opacity="0"/></radialGradient>
+      <radialGradient id="spT" cx="100%" cy="100%" r="100%" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="#00e8c0" stop-opacity="0.55"/><stop offset="65%" stop-color="#00e8c0" stop-opacity="0"/></radialGradient>
+      <clipPath id="spC"><circle cx="200" cy="200" r="196"/></clipPath>
+    </defs>
+    <circle cx="200" cy="200" r="196" fill="#000"/>
+    <g clip-path="url(#spC)">
+      <rect width="400" height="400" fill="url(#spR)"/>
+      <rect width="400" height="400" fill="url(#spY)" style="mix-blend-mode:screen"/>
+      <rect width="400" height="400" fill="url(#spT)" style="mix-blend-mode:screen"/>
+    </g>
+    <circle cx="200" cy="200" r="196" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+    <text x="200" y="255" font-family="'Pinyon Script', Georgia, serif" font-size="210" fill="white" fill-opacity="0.92" text-anchor="middle">M</text>
+    <text x="204" y="322" font-family="sans-serif" font-size="22" font-weight="300" letter-spacing="16" fill="white" fill-opacity="0.48" text-anchor="middle">musian</text>
+  </svg>
+</div>
 <div id="jmApp">
-  <h2 style="font-size:1.6em;font-weight:300;letter-spacing:0.06em;margin:0 0 32px;display:flex;align-items:baseline;gap:10px;"><span>&#127925; Musian</span><span style="font-size:0.38em;color:#444;">v3.0.69.0</span></h2>
+  <h2 style="font-size:1.6em;font-weight:300;letter-spacing:0.06em;margin:0 0 32px;display:flex;align-items:baseline;gap:10px;"><span>&#127925; Musian</span><span style="font-size:0.38em;color:#444;">v3.0.70.0</span></h2>
 
   <div id="jmWheelWrap" style="position:relative;width:min(80vw,420px);height:min(80vw,420px);margin:0 auto 8px;">
     <svg id="jmSvgWheel" viewBox="0 0 400 400" width="100%" height="100%"
@@ -186,6 +209,14 @@ var JM = {
   }
 };
 JM.init();
+(function() {
+  var splash = document.getElementById('jmSplash');
+  if (!splash) return;
+  setTimeout(function() {
+    splash.classList.add('fade');
+    setTimeout(function() { splash.style.display = 'none'; }, 850);
+  }, 1400);
+})();
 var jmGenreCache = null;
 if (JM.token) {
   fetch(JM.server + '/Genres?' + new URLSearchParams({
